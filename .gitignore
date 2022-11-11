@@ -1,52 +1,36 @@
-# Prerequisites
-*.d
+# Ignore all
+*
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+# Unignore all dirs
+!*/
 
-# Linker output
-*.ilk
-*.map
-*.exp
+# Unignore .txt, .c, .h
+!*.txt
+!*.TXT
+!*.c
+!*.h
 
-# Precompiled Headers
-*.gch
-*.pch
+# Unignore markup
+!*.ad
+!*.adoc
+!*.md
+!*.MD
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
+# VS
+.vs/
+.vscode/
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+# CMake
+CMakeCache.txt
+CMakeFiles/
+*-build/
+cmake-build-debug/
+build/
+_build/
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
-
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# Unignore .gitignore, .clang-format and .clang-tidy
+!.gitignore
+!.clang-format
+!.clang-tidy
+!.makefile
