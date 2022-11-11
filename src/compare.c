@@ -62,7 +62,7 @@ void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array)
     STARTTm;
     for (int i = 0; i < patterns->count; i++)
     {
-        JSLI(PValue, *judy_array, patterns->patterns[i].word);
+        JSLI(PValue, *judy_array, (uint8_t *) patterns->patterns[i].word);
         *PValue = (long unsigned int)patterns->patterns[i].code;
     }
     ENDTm;
@@ -89,7 +89,7 @@ char *judy_hyphenate_word(char *word, Pvoid_t *judy_array)
             word[j + i] = '\0';
 
             Word_t *find_return;
-            JSLG(find_return, *judy_array, &word[j]);
+            JSLG(find_return, *judy_array, (uint8_t *) &word[j]);
 
             if (find_return != NULL)
             {
@@ -172,8 +172,6 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie)
     ssize_t read;
     char *word = NULL;
 
-    long start, end;
-    struct timeval timecheck;
     double time_judy = 0;
     double time_trie = 0;
 

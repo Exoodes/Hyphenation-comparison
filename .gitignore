@@ -34,3 +34,4 @@ _build/
 !.clang-format
 !.clang-tidy
 !.makefile
+!.Makefile
