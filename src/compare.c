@@ -41,7 +41,7 @@ char *hyphenate_from_code(char *word, char *code)
     int r_p = 0;
     for (int i = 1; i < len - 1; i++)
     {
-        if (code[i - 1] % 2 == 1 && i != 1)
+        if (code[i] % 2 == 1 && i != 1)
         {
 
             result[r_p] = '-';
@@ -62,7 +62,7 @@ void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array)
     STARTTm;
     for (int i = 0; i < patterns->count; i++)
     {
-        JSLI(PValue, *judy_array, (uint8_t *) patterns->patterns[i].word);
+        JSLI(PValue, *judy_array, (uint8_t *)patterns->patterns[i].word);
         *PValue = (long unsigned int)patterns->patterns[i].code;
     }
     ENDTm;
@@ -78,8 +78,8 @@ char *judy_hyphenate_word(char *word, Pvoid_t *judy_array)
     char backup;
     int len = strlen(word);
 
-    char hyph_code[len - 1];
-    memset(hyph_code, 0, (len - 1) * sizeof(char));
+    char hyph_code[len + 1];
+    memset(hyph_code, 0, (len + 1) * sizeof(char));
 
     for (int i = 1; i <= len; i++)
     {
@@ -89,7 +89,7 @@ char *judy_hyphenate_word(char *word, Pvoid_t *judy_array)
             word[j + i] = '\0';
 
             Word_t *find_return;
-            JSLG(find_return, *judy_array, (uint8_t *) &word[j]);
+            JSLG(find_return, *judy_array, (uint8_t *)&word[j]);
 
             if (find_return != NULL)
             {
@@ -97,8 +97,8 @@ char *judy_hyphenate_word(char *word, Pvoid_t *judy_array)
 
                 for (int k = 0; k <= i; k++)
                 {
-                    if (pattern_list[k] > hyph_code[j + k - 1])
-                        hyph_code[j + k - 1] = pattern_list[k];
+                    if (pattern_list[k] > hyph_code[j + k])
+                        hyph_code[j + k] = pattern_list[k];
                 }
             }
 
@@ -134,8 +134,8 @@ char *patricia_trie_hyphenate_word(char *word, patricia *patricia_trie)
     char backup;
     int len = strlen(word);
 
-    char hyph_code[len - 1];
-    memset(hyph_code, 0, (len - 1) * sizeof(char));
+    char hyph_code[len + 1];
+    memset(hyph_code, 0, (len + 1) * sizeof(char));
 
     for (int i = 1; i <= len; i++)
     {
@@ -150,8 +150,8 @@ char *patricia_trie_hyphenate_word(char *word, patricia *patricia_trie)
             {
                 for (int k = 0; k <= i; k++)
                 {
-                    if (pattern_list[k] > hyph_code[j + k - 1])
-                        hyph_code[j + k - 1] = pattern_list[k];
+                    if (pattern_list[k] > hyph_code[j + k])
+                        hyph_code[j + k] = pattern_list[k];
                 }
             }
 
@@ -226,6 +226,8 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie)
         }
 
         word_count++;
+        free(judy_hyphenated);
+        free(trie_hyphenated);
     }
 
     fclose(fp);
