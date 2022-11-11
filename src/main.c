@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <assert.h>
+#include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <stdbool.h>
@@ -24,10 +25,6 @@ struct timeval TBeg, TEnd;
 // End of timing routines ========================================
 
 bool verbose = false;
-
-// TODO - Options (verbose)
-// TODO - File structure
-// TODO - Better makefile + folder structure
 
 /**
  * Data structure for holding 1 pattern
@@ -148,90 +145,6 @@ void patterns_free(Pattern_wrapper *patterns)
     free(patterns->patterns);
 }
 
-/* ---------------------------- WORDS FUNCTIONS ----------------------------- */
-/**
- * Function for loading words to array of strings (char **). This function
- * allocate needed space, which must be freed later. Returns 0  if everything
- * went ok, return 1 if file was not opened correctly or allocation failed.
- */
-int words_load(char ***list_of_words, const char *file_name, int *word_count)
-{
-    FILE *fp;
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
-
-    fp = fopen(file_name, "r");
-    if (fp == NULL)
-    {
-        printf("Cannot open file %s", file_name);
-        return 1;
-    }
-
-    *word_count = 0;
-    int max_capacity = 1;
-    *list_of_words = realloc(*list_of_words, max_capacity * sizeof(char *));
-    if (*list_of_words == NULL)
-    {
-        printf("Allocation errro\n");
-        return 1;
-    }
-
-    while ((read = getline(&line, &len, fp)) != -1)
-    {
-        if (*word_count == max_capacity)
-        {
-            max_capacity *= 2;
-            *list_of_words = realloc(*list_of_words, max_capacity * sizeof(char *));
-            if (*list_of_words == NULL)
-            {
-                printf("Allocation errro\n");
-                return 1;
-            }
-        }
-
-        if (line[read - 1] == '\n')
-        {
-            line[read - 1] = '\0';
-            read--;
-        }
-
-        if (read == 0)
-            continue;
-
-        (*list_of_words)[*word_count] = calloc(read + 2 + 1, sizeof(char));
-        if ((*list_of_words)[*word_count] == NULL)
-        {
-            printf("Allocation errro\n");
-            return 1;
-        }
-
-        (*list_of_words)[*word_count][0] = '.';
-        strcat((*list_of_words)[*word_count], line);
-        (*list_of_words)[*word_count][read + 1] = '.';
-
-        (*word_count)++;
-    }
-
-    fclose(fp);
-
-    if (line)
-        free(line);
-
-    return 0;
-}
-
-// Functions for freeing all strings and array of strings
-void words_free(char ***list_of_words, int count)
-{
-    for (int i = 0; i < count; i++)
-    {
-        free((*list_of_words)[i]);
-    }
-
-    free(*list_of_words);
-}
-
 /* -------------------------- HYPHENATION FUNCTIONS ------------------------- */
 
 char *hyphenate_from_code(char *word, char *code)
@@ -248,20 +161,17 @@ char *hyphenate_from_code(char *word, char *code)
     int r_p = 0;
     for (int i = 1; i < len - 1; i++)
     {
-        if (code[i - 1] % 2 == 1)
+        if (code[i - 1] % 2 == 1 && i != 1)
         {
-            if (i != 1)
-            {
-                result[r_p] = '-';
-                r_p++;
-            }
+
+            result[r_p] = '-';
+            r_p++;
         }
 
         result[r_p] = word[i];
         r_p++;
     }
 
-    printf("%s\n", result);
     return result;
 }
 
@@ -295,7 +205,6 @@ void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array)
  */
 char *judy_hyphenate_word(char *word, Pvoid_t *judy_array)
 {
-    char x = 'á';
     char backup;
     int len = strlen(word);
 
@@ -314,21 +223,13 @@ char *judy_hyphenate_word(char *word, Pvoid_t *judy_array)
 
             if (find_return != NULL)
             {
-                printf("%s ", &word[j]);
-
                 char *pattern_list = (char *)*find_return;
 
                 for (int k = 0; k <= i; k++)
                 {
-                    printf("%i", pattern_list[k]);
                     if (pattern_list[k] > hyph_code[j + k - 1])
                         hyph_code[j + k - 1] = pattern_list[k];
                 }
-
-                printf(" ");
-                for (int index = 0; index < len - 1; index++)
-                    printf("%i", hyph_code[index]);
-                printf("\n");
             }
 
             word[j + i] = backup;
@@ -337,7 +238,6 @@ char *judy_hyphenate_word(char *word, Pvoid_t *judy_array)
 
     char *result = hyphenate_from_code(word, hyph_code);
 
-    free(result);
     return result;
 }
 
@@ -369,13 +269,13 @@ void patricia_trie_insert_patterns(Pattern_wrapper *patterns,
  * Hyphenate word using patricia trie data structure. Returns pointer to
  * allocated string with hyphenation marks
  */
-void patricia_trie_hyphenate_word(char *word, patricia *patricia_trie)
+char *patricia_trie_hyphenate_word(char *word, patricia *patricia_trie)
 {
     char backup;
     int len = strlen(word);
 
-    char hyph_code[len + 1];
-    memset(hyph_code, 0, (len + 1) * sizeof(char));
+    char hyph_code[len - 1];
+    memset(hyph_code, 0, (len - 1) * sizeof(char));
 
     for (int i = 1; i <= len; i++)
     {
@@ -390,8 +290,8 @@ void patricia_trie_hyphenate_word(char *word, patricia *patricia_trie)
             {
                 for (int k = 0; k <= i; k++)
                 {
-                    if (pattern_list[k] > hyph_code[j + k])
-                        hyph_code[j + k] = pattern_list[k];
+                    if (pattern_list[k] > hyph_code[j + k - 1])
+                        hyph_code[j + k - 1] = pattern_list[k];
                 }
             }
 
@@ -400,50 +300,85 @@ void patricia_trie_hyphenate_word(char *word, patricia *patricia_trie)
     }
 
     char *result = hyphenate_from_code(word, hyph_code);
-    free(result);
+
+    return result;
 }
 
-/* ------------------------ UNCATEGORISED FUNCTIONS  ------------------------- */
+/* ------------------------- HYPHENATION FUNCTIONS  -------------------------- */
 
-void hyphenate_compare(char **words, int word_count, Pvoid_t *judy_array,
-                       patricia *patricia_trie)
+int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie)
 {
-    char backup;
-    STARTTm;
-    for (int i = 0; i < word_count; i++)
-    {
-        judy_hyphenate_word(words[i], judy_array);
-    }
-    ENDTm;
+    FILE *fp;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    char *word = NULL;
 
-    if (verbose)
-    {
-        printf("Hyphenation of %u words through judy took %6.3f"
-               " microseconds per word\n",
-               word_count, DeltaUSec / word_count);
-    }
+    long start, end;
+    struct timeval timecheck;
+    double time_judy = 0;
+    double time_trie = 0;
 
-    double time_1 = DeltaUSec;
+    char *judy_hyphenated;
+    char *trie_hyphenated;
 
-    STARTTm;
-    for (int i = 0; i < word_count; i++)
+    fp = fopen(file_name, "r");
+    if (fp == NULL)
     {
-        // patricia_trie_hyphenate_word(words[i], patricia_trie);
-    }
-    ENDTm;
-
-    if (verbose)
-    {
-        printf("Hyphenation of %u words through patricia trie took %6.3f"
-               " microseconds per word\n",
-               word_count, DeltaUSec / word_count);
+        printf("Cannot open file %s", file_name);
+        return 1;
     }
 
-    if (verbose)
+    while ((read = getline(&line, &len, fp)) != -1)
     {
-        printf("Judy was %3.2f%% faster than patricia trie\n",
-               (time_1 / DeltaUSec) * 100);
+        if (line[read - 1] == '\n')
+        {
+            line[read - 1] = '\0';
+            read--;
+        }
+
+        if (read == 0)
+            continue;
+
+        word = realloc(word, (read + 3) * sizeof(char));
+        if (word == NULL)
+        {
+            printf("Allocation error\n");
+            return 1;
+        }
+
+        memset(word, 0, read + 3);
+        word[0] = '.';
+        strcat(word, line);
+        word[read + 1] = '.';
+
+        STARTTm;
+        judy_hyphenated = judy_hyphenate_word(word, judy_array);
+        ENDTm;
+        time_judy += DeltaUSec;
+
+        STARTTm;
+        trie_hyphenated = patricia_trie_hyphenate_word(word, patricia_trie);
+        ENDTm;
+        time_trie += DeltaUSec;
+
+        if (strcmp(judy_hyphenated, trie_hyphenated) != 0)
+        {
+            printf("%s != %s\n", judy_hyphenated, trie_hyphenated);
+        }
     }
+
+    fclose(fp);
+    if (line)
+        free(line);
+
+    if (word)
+        free(word);
+
+    printf("Judy - %f\n", time_judy);
+    printf("Trie - %f\n", time_trie);
+    printf("Judy was %.2f%% faster\n", (time_judy / time_trie) * 100);
+    return 0;
 }
 
 int main(int argc, char const *argv[])
@@ -470,22 +405,14 @@ int main(int argc, char const *argv[])
     judy_insert_patterns(&patterns, judy_array_p);
     patricia_trie_insert_patterns(&patterns, patricia_trie);
 
-    // Creating data structure and loading words from external file into it
-    char **words = NULL;
-    int word_count = 0;
-
-    int return_val = words_load(&words, argv[2], &word_count);
-
     // Comparing how both data structure do in hyphenation
-    hyphenate_compare(words, word_count, &judy_array, patricia_trie);
+    compare(argv[2], &judy_array, patricia_trie);
 
     // Destroying all data structures and freeing all of its memory
     Word_t freed_count;
     JSLFA(freed_count, judy_array);
     patricia_destroy(patricia_trie);
-
     patterns_free(&patterns);
-    words_free(&words, word_count);
 
     return 0;
 }
