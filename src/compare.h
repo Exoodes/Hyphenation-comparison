@@ -1,6 +1,10 @@
+#ifndef COMPARE_H
+#define COMPARE_H
+
+#include <Judy.h>
+
 #include "patricia_trie.h"
 #include "patterns.h"
-#include "judy.h"
 
 /* -------------------------- HYPHENATION FUNCTIONS ------------------------- */
 
@@ -38,3 +42,5 @@ char *patricia_trie_hyphenate_word(char *word, patricia *patricia_trie);
 /* ------------------------- HYPHENATION FUNCTIONS  -------------------------- */
 
 int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie);
+
+#endif // !COMPARE_H

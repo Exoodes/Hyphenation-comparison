@@ -1,19 +1,18 @@
 #include "compare.h"
 #include "patricia_trie.h"
 #include "patterns.h"
-#include "judy.h"
 
 #define _GNU_SOURCE
 #define JUDYERROR_SAMPLE 1 // use default Judy error handler
 #define MAXLINELEN 1000000 // define maximum string length
 
+#include <Judy.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include <assert.h>
-#include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <stdbool.h>
@@ -27,7 +26,6 @@ struct timeval TBeg, TEnd;
 // End of timing routines ========================================
 
 bool verbose = false;
-
 
 char *hyphenate_from_code(char *word, char *code)
 {
