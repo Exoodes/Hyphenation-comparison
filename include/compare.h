@@ -22,7 +22,7 @@ void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array);
  * Hyphenate word using judy data structure. Returns pointer to allocated string
  * with hyphenation marks
  */
-char *judy_hyphenate_word(char *word, Pvoid_t *judy_array);
+char *judy_hyphenate_word(char *word, Pvoid_t *judy_array, char *utf8_code);
 
 /* ------------------------- PATRICIA TRIE FUNCTIONS ------------------------- */
 

@@ -20,6 +20,8 @@ typedef struct
     int count;
 } Pattern_wrapper;
 
+int strlen_utf8(const char *str);
+
 // Helper function for showing loaded pattern in better form
 void patterns_show(Pattern_wrapper *patterns, int index);
 
@@ -32,6 +34,5 @@ int patterns_load(Pattern_wrapper *patterns, const char *file_name);
 
 // Functions for freeing all patterns and freeing pattern wrapper
 void patterns_free(Pattern_wrapper *patterns);
-
 
 #endif // !PATTERNS_H

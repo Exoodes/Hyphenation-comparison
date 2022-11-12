@@ -112,8 +112,6 @@ int patterns_load(Pattern_wrapper *patterns, const char *file_name)
             }
         }
 
-        printf("%i ", strlen_utf8(patterns->patterns[patterns->count].word));
-        patterns_show(patterns, patterns->count);
         patterns->count++;
     }
 
