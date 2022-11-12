@@ -16,9 +16,9 @@ LDLIBS   := -lJudy
 
 VALFLAGS := --show-leak-kinds=all --track-origins=yes --leak-check=full --track-fds=yes
 
-INPUT := assets/english_patterns.tex assets/testing_words.dic
+INPUT := assets/czech_patterns.tex assets/testing_words.dic
 
-all: $(EXE) run
+all: $(EXE)
 
 .PHONY: all clean run
 
