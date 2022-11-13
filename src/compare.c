@@ -36,7 +36,7 @@ char *hyphenate_from_code(char *word, char *code)
         if (code[i] % 2 == 1)
             hyphen_count++;
 
-    char *result = calloc(len + hyphen_count - 1, sizeof(char));
+    char *result = calloc(len + hyphen_count + 1, sizeof(char));
 
     int r_p = 0;
     int code_p = 1;
@@ -272,6 +272,8 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie)
             printf("%s != %s\n", judy_hyphenated, trie_hyphenated);
         }
 
+        printf("%s\n", judy_hyphenated);
+
         word_count++;
         free(judy_hyphenated);
         free(trie_hyphenated);
@@ -287,8 +289,16 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie)
 
     printf("Judy - %f\n", time_judy);
     printf("Trie - %f\n", time_trie);
-    printf("Judy was %.2f%% faster hyphenating %i words\n",
-           (time_judy / time_trie) * 100, word_count);
+    if (time_judy < time_trie)
+    {
+        printf("Judy was %.2f%% faster hyphenating %i words\n",
+               100 - (time_judy / time_trie) * 100, word_count);
+    }
+    else
+    {
+        printf("Patricia trie was %.2f%% faster hyphenating %i words\n",
+               (100 - (time_trie / time_judy) * 100), word_count);
+    }
     return 0;
 }
 

@@ -90,7 +90,7 @@ int patterns_load(Pattern_wrapper *patterns, const char *file_name)
         }
 
         patterns->patterns[patterns->count].code =
-            calloc(strlen_utf8(patterns->patterns[patterns->count].word) + 1, sizeof(char));
+            calloc(strlen_utf8(patterns->patterns[patterns->count].word) + 3, sizeof(char));
         if (patterns->patterns[patterns->count].code == NULL)
         {
             printf("Allocation errro\n");
