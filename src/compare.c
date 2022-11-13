@@ -79,7 +79,7 @@ void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array)
                patterns->count, DeltaUSec / patterns->count);
 }
 
-char *judy_hyphenate_word(char *word, Pvoid_t *judy_array, char *utf8_code)
+char *judy_hyphenate_word(char *word, Pvoid_t *judy_array, const char *utf8_code)
 {
     char backup;
     int len = strlen_utf8(word);
@@ -99,13 +99,10 @@ char *judy_hyphenate_word(char *word, Pvoid_t *judy_array, char *utf8_code)
 
             if (find_return != NULL)
             {
-                printf("%s ", &word[(int)utf8_code[j]]);
-
                 char *pattern_list = (char *)*find_return;
 
                 for (int k = 0; k <= i; k++)
                 {
-                    printf("%i ", pattern_list[k]);
                     if (pattern_list[k] > hyph_code[j + k])
                         hyph_code[j + k] = pattern_list[k];
                 }
@@ -116,7 +113,6 @@ char *judy_hyphenate_word(char *word, Pvoid_t *judy_array, char *utf8_code)
     }
 
     char *result = hyphenate_from_code(word, hyph_code);
-    printf("%s\n", result);
     return result;
 }
 
@@ -138,10 +134,10 @@ void patricia_trie_insert_patterns(Pattern_wrapper *patterns,
                patterns->count, DeltaUSec / patterns->count);
 }
 
-char *patricia_trie_hyphenate_word(char *word, patricia *patricia_trie)
+char *patricia_trie_hyphenate_word(char *word, patricia *patricia_trie, const char *utf8_code)
 {
     char backup;
-    int len = strlen(word);
+    int len = strlen_utf8(word);
 
     char hyph_code[len + 1];
     memset(hyph_code, 0, (len + 1) * sizeof(char));
@@ -150,13 +146,16 @@ char *patricia_trie_hyphenate_word(char *word, patricia *patricia_trie)
     {
         for (int j = 0; j <= len - i; j++)
         {
-            backup = word[j + i];
-            word[j + i] = '\0';
+            backup = word[(int)utf8_code[j + i]];
+            word[(int)utf8_code[j + i]] = '\0';
 
-            const char *pattern_list = patricia_lookup(patricia_trie, &word[j], i);
+            const char *pattern_list = patricia_lookup(patricia_trie,
+                                                       &word[(int)utf8_code[j]],
+                                                       utf8_code[j + i] - utf8_code[j]);
 
             if (pattern_list != NULL)
             {
+
                 for (int k = 0; k <= i; k++)
                 {
                     if (pattern_list[k] > hyph_code[j + k])
@@ -164,19 +163,17 @@ char *patricia_trie_hyphenate_word(char *word, patricia *patricia_trie)
                 }
             }
 
-            word[j + i] = backup;
+            word[(int)utf8_code[j + i]] = backup;
         }
     }
 
-    // char *result = hyphenate_from_code(word, hyph_code);
-
-    // return result;
-    return NULL;
+    char *result = hyphenate_from_code(word, hyph_code);
+    return result;
 }
 
 char *create_array_utf(char *word)
 {
-    char *code = malloc((strlen_utf8(word) + 2) * sizeof(char));
+    char *code = calloc((strlen_utf8(word) + 2), sizeof(char));
     int array_index = 1;
     char c;
 
@@ -266,18 +263,19 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie)
         time_judy += DeltaUSec;
 
         STARTTm;
-        // trie_hyphenated = patricia_trie_hyphenate_word(word, patricia_trie);
+        trie_hyphenated = patricia_trie_hyphenate_word(word, patricia_trie, utf8_code);
         ENDTm;
         time_trie += DeltaUSec;
 
-        // if (strcmp(judy_hyphenated, trie_hyphenated) != 0)
-        //{
-        //  printf("%s != %s\n", judy_hyphenated, trie_hyphenated);
-        //}
+        if (strcmp(judy_hyphenated, trie_hyphenated) != 0)
+        {
+            printf("%s != %s\n", judy_hyphenated, trie_hyphenated);
+        }
 
         word_count++;
         free(judy_hyphenated);
-        // free(trie_hyphenated);
+        free(trie_hyphenated);
+        free(utf8_code);
     }
 
     fclose(fp);
@@ -290,7 +288,7 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie)
     printf("Judy - %f\n", time_judy);
     printf("Trie - %f\n", time_trie);
     printf("Judy was %.2f%% faster hyphenating %i words\n",
-           time_judy / time_trie, word_count);
+           (time_judy / time_trie) * 100, word_count);
     return 0;
 }
 
