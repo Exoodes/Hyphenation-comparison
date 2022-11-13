@@ -11,12 +11,12 @@ SRC := $(wildcard $(SRC_DIR)/*.c)
 OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 CPPFLAGS := -Iinclude -MMD -MP # -I is a preprocessor flag, not a compiler flag
-CFLAGS   := -Wall   -ggdb3           # some warnings about bad code
+CFLAGS   := -Wall  # -ggdb3           # some warnings about bad code
 LDLIBS   := -lJudy
 
 VALFLAGS := --show-leak-kinds=all --track-origins=yes --leak-check=full --track-fds=yes
 
-INPUT := assets/czech_patterns.tex assets/testing_words.dic
+INPUT := assets/czech_patterns.tex assets/czech_testing_words.dic
 
 all: $(EXE)
 
