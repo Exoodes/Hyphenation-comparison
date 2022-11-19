@@ -10,13 +10,14 @@ SRC := $(wildcard $(SRC_DIR)/*.c)
 
 OBJ := $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-CPPFLAGS := -Iinclude -MMD -MP # -I is a preprocessor flag, not a compiler flag
-CFLAGS   := -Wall  # -ggdb3           # some warnings about bad code
+CPPFLAGS := -Iinclude -MMD -MP 
+CFLAGS   := -Wall #-ggdb3           
 LDLIBS   := -lJudy
 
 VALFLAGS := --show-leak-kinds=all --track-origins=yes --leak-check=full --track-fds=yes
 
-INPUT := assets/czech_patterns.tex assets/czech_testing_words.dic
+INPUT_CZ  := assets/czech_patterns.tex assets/czech_testing_words.dic
+INPUT_ENG := assets/english_patterns_max.tex assets/english_words.dic
 
 all: $(EXE)
 
@@ -32,10 +33,10 @@ $(BIN_DIR) $(OBJ_DIR):
 	mkdir -p $@
 
 run: $(EXE)
-	$(EXE) $(INPUT)
+	$(EXE) $(INPUT_ENG)
 
 valgrind: $(EXE)
-	valgrind $(VALFLAGS) $(EXE) assets/english_patterns.tex assets/testing_words.dic
+	valgrind $(VALFLAGS) $(EXE) $(INPUT_ENG)
 
 clean:
 	@$(RM) -rv $(BIN_DIR) $(OBJ_DIR)
