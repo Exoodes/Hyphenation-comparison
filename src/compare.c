@@ -2,10 +2,6 @@
 #include "patricia_trie.h"
 #include "patterns.h"
 
-#define _GNU_SOURCE
-#define JUDYERROR_SAMPLE 1 // use default Judy error handler
-#define MAXLINELEN 1000000 // define maximum string length
-
 #include <Judy.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -17,49 +13,22 @@
 #include <sys/types.h>
 #include <stdbool.h>
 
-// Start of timing routines ========================================
+#define _GNU_SOURCE
+
+// Judy settings
+#define JUDYERROR_SAMPLE 1 // use default Judy error handler
+#define MAXLINELEN 100     // define maximum string length
+
+// Timing routines
 struct timeval TBeg, TEnd;
 #define STARTTm gettimeofday(&TBeg, NULL)
 #define ENDTm gettimeofday(&TEnd, NULL)
-#define DeltaUSec \
-    (((double)TEnd.tv_sec * 1000000.0 + (double)TEnd.tv_usec) - ((double)TBeg.tv_sec * 1000000.0 + (double)TBeg.tv_usec))
-// End of timing routines ========================================
+#define DeltaUSec (((double)TEnd.tv_sec * 1000000.0 + (double)TEnd.tv_usec) - \
+                   ((double)TBeg.tv_sec * 1000000.0 + (double)TBeg.tv_usec))
 
-bool verbose = false;
-
-char *hyphenate_from_code(char *word, char *code)
-{
-    int len = strlen(word);
-    int hyphen_count = 0;
-
-    for (int i = 0; i < strlen(code); i++)
-        if (code[i] % 2 == 1)
-            hyphen_count++;
-
-    char *result = calloc(len + hyphen_count + 1, sizeof(char));
-
-    int r_p = 0;
-    int code_p = 1;
-    for (int i = 1; i < len - 1; i++)
-    {
-        if ((word[i] & 0xF8) == 0xF0 || (word[i] & 0xF0) == 0xE0 ||
-            (word[i] & 0xE0) == 0xC0 || (word[i] >= 0 && word[i] <= 127))
-        {
-            if (code[code_p] % 2 == 1 && i != 1)
-            {
-                result[r_p] = '-';
-                r_p++;
-            }
-
-            code_p++;
-        }
-
-        result[r_p] = word[i];
-        r_p++;
-    }
-
-    return result;
-}
+// Global constants
+bool verbose = true;
+char hyphenation_char = '-';
 
 void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array)
 {
@@ -74,46 +43,9 @@ void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array)
     ENDTm;
 
     if (verbose)
-        printf("Insertion in judy data structure of %u indexes took %f "
-               "microseconds per index\n",
+        printf("Insertion in judy data structure     of %u indexes took %.3f "
+               "microseconds per pattern\n",
                patterns->count, DeltaUSec / patterns->count);
-}
-
-char *judy_hyphenate_word(char *word, Pvoid_t *judy_array, const char *utf8_code)
-{
-    char backup;
-    int len = strlen_utf8(word);
-
-    char hyph_code[len + 1];
-    memset(hyph_code, 0, (len + 1) * sizeof(char));
-
-    for (int i = 1; i <= len; i++)
-    {
-        for (int j = 0; j <= len - i; j++)
-        {
-            backup = word[(int)utf8_code[j + i]];
-            word[(int)utf8_code[j + i]] = '\0';
-
-            Word_t *find_return;
-            JSLG(find_return, *judy_array, (uint8_t *)&word[(int)utf8_code[j]]);
-
-            if (find_return != NULL)
-            {
-                char *pattern_list = (char *)*find_return;
-
-                for (int k = 0; k <= i; k++)
-                {
-                    if (pattern_list[k] > hyph_code[j + k])
-                        hyph_code[j + k] = pattern_list[k];
-                }
-            }
-
-            word[(int)utf8_code[j + i]] = backup;
-        }
-    }
-
-    char *result = hyphenate_from_code(word, hyph_code);
-    return result;
 }
 
 void patricia_trie_insert_patterns(Pattern_wrapper *patterns,
@@ -129,18 +61,73 @@ void patricia_trie_insert_patterns(Pattern_wrapper *patterns,
     ENDTm;
 
     if (verbose)
-        printf("Insertion in patricia of %u indexes took %6.3f microseconds "
-               "per index\n",
+        printf("Insertion in patricia trie structure of %u indexes took %.3f "
+               "microseconds per pattern\n",
                patterns->count, DeltaUSec / patterns->count);
 }
 
-char *patricia_trie_hyphenate_word(char *word, patricia *patricia_trie, const char *utf8_code)
+// TODO
+char *hyphenate_from_code(char *word, char *code)
+{
+    int len = strlen(word);
+    int len_utf = strlen_utf8(word);
+    int hyphen_count = 0;
+
+    for (int i = 0; i <= len_utf; i++)
+        if (code[i] % 2 == 1)
+            hyphen_count++;
+
+    char *result = calloc(len + hyphen_count + 1, sizeof(char));
+
+    int r_p = 0;
+    int code_p = 1;
+    for (int i = 1; i < len - 1; i++)
+    {
+        if ((word[i] & 0xF8) == 0xF0 || (word[i] & 0xF0) == 0xE0 ||
+            (word[i] & 0xE0) == 0xC0 || (word[i] >= 0 && word[i] <= 127))
+        {
+            if (code[code_p] % 2 == 1 && i != 1)
+            {
+                result[r_p] = hyphenation_char;
+                r_p++;
+            }
+
+            code_p++;
+        }
+
+        result[r_p] = word[i];
+        r_p++;
+    }
+
+    return result;
+}
+
+// compare.c private function
+const char *_get_pattern(Pvoid_t *judy_array, patricia *patricia_trie,
+                         bool branch, char *pattern_word, int len)
+{
+    if (branch)
+    {
+        Word_t *find_return;
+        JSLG(find_return, *judy_array, (uint8_t *)pattern_word);
+        if (find_return != NULL)
+            return (char *)*find_return;
+
+        return NULL;
+    }
+
+    return patricia_lookup(patricia_trie, pattern_word, len);
+}
+
+char *hyphenate_word(char *word, Pvoid_t *judy_array, patricia *patricia_trie,
+                     const char *utf8_code, bool branch)
 {
     char backup;
     int len = strlen_utf8(word);
 
     char hyph_code[len + 1];
     memset(hyph_code, 0, (len + 1) * sizeof(char));
+    const char *pattern_list = NULL;
 
     for (int i = 1; i <= len; i++)
     {
@@ -149,13 +136,12 @@ char *patricia_trie_hyphenate_word(char *word, patricia *patricia_trie, const ch
             backup = word[(int)utf8_code[j + i]];
             word[(int)utf8_code[j + i]] = '\0';
 
-            const char *pattern_list = patricia_lookup(patricia_trie,
-                                                       &word[(int)utf8_code[j]],
-                                                       utf8_code[j + i] - utf8_code[j]);
+            pattern_list = _get_pattern(judy_array, patricia_trie, branch,
+                                        &word[(int)utf8_code[j]],
+                                        utf8_code[j + i] - utf8_code[j]);
 
             if (pattern_list != NULL)
             {
-
                 for (int k = 0; k <= i; k++)
                 {
                     if (pattern_list[k] > hyph_code[j + k])
@@ -207,6 +193,37 @@ char *create_array_utf(char *word)
     return code;
 }
 
+// compare.c private function
+void print_results(double time_judy, double time_trie, int word_count)
+{
+    printf("Judy - %.2f microseconds\n", time_judy);
+    printf("Trie - %.2f microseconds\n", time_trie);
+    if (time_judy < time_trie)
+    {
+        printf("Judy was %.2f%% faster hyphenating %i words\n",
+               100 - (time_judy / time_trie) * 100, word_count);
+    }
+    else
+    {
+        printf("Patricia trie was %.2f%% faster hyphenating %i words\n",
+               (100 - (time_trie / time_judy) * 100), word_count);
+    }
+}
+
+char *add_dots_to_word(int len, char *word, char *previous_word)
+{
+    char *result = realloc(previous_word, (len + 3) * sizeof(char));
+    if (result == NULL)
+        return NULL;
+
+    memset(result, 0, len + 3);
+    result[0] = '.';
+    strcat(result, word);
+    result[len + 1] = '.';
+
+    return result;
+}
+
 int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie)
 {
     FILE *fp;
@@ -217,13 +234,7 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie)
 
     double time_judy = 0;
     double time_trie = 0;
-
-    char *judy_hyphenated;
-    char *trie_hyphenated;
-
     int word_count = 0;
-
-    char *utf8_code;
 
     fp = fopen(file_name, "r");
     if (fp == NULL)
@@ -243,27 +254,21 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie)
         if (read == 0)
             continue;
 
-        word = realloc(word, (read + 3) * sizeof(char));
+        word = add_dots_to_word(read, line, word);
         if (word == NULL)
         {
-            printf("Allocation error\n");
             return 1;
         }
 
-        memset(word, 0, read + 3);
-        word[0] = '.';
-        strcat(word, line);
-        word[read + 1] = '.';
-
-        utf8_code = create_array_utf(word);
+        char *utf8_code = create_array_utf(word);
 
         STARTTm;
-        judy_hyphenated = judy_hyphenate_word(word, judy_array, utf8_code);
+        char *judy_hyphenated = hyphenate_word(word, judy_array, patricia_trie, utf8_code, true);
         ENDTm;
         time_judy += DeltaUSec;
 
         STARTTm;
-        trie_hyphenated = patricia_trie_hyphenate_word(word, patricia_trie, utf8_code);
+        char *trie_hyphenated = hyphenate_word(word, judy_array, patricia_trie, utf8_code, false);
         ENDTm;
         time_trie += DeltaUSec;
 
@@ -271,8 +276,6 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie)
         {
             printf("%s != %s\n", judy_hyphenated, trie_hyphenated);
         }
-
-        printf("%s\n", judy_hyphenated);
 
         word_count++;
         free(judy_hyphenated);
@@ -283,22 +286,10 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie)
     fclose(fp);
     if (line)
         free(line);
-
     if (word)
         free(word);
 
-    printf("Judy - %f\n", time_judy);
-    printf("Trie - %f\n", time_trie);
-    if (time_judy < time_trie)
-    {
-        printf("Judy was %.2f%% faster hyphenating %i words\n",
-               100 - (time_judy / time_trie) * 100, word_count);
-    }
-    else
-    {
-        printf("Patricia trie was %.2f%% faster hyphenating %i words\n",
-               (100 - (time_trie / time_judy) * 100), word_count);
-    }
+    print_results(time_judy, time_trie, word_count);
     return 0;
 }
 
