@@ -6,6 +6,7 @@
 
 #include <Judy.h>
 #include <stdbool.h>
+#include <cprops/trie.h>
 
 /**
  * Insert all patterns stored in Pattern_wrapper patterns into judy data
@@ -20,6 +21,12 @@ void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array);
 void patricia_trie_insert_patterns(Pattern_wrapper *patterns,
                                    patricia *patricia_trie);
 
+/**
+ * Insert all patterns stored in Pattern_wrapper patterns into cprops patricia
+ * trie data structure. This function is timed for comparison
+ */
+void cprops_patricia_trie_insert_patterns(Pattern_wrapper *patterns,
+                                          cp_trie *patricia_trie);
 /**
  * This functions takes a word and full hyphenation code and returns a new
  * hyphenated word. Hyphenation character can be changed.
@@ -37,16 +44,17 @@ char *create_array_utf(char *word);
 char *add_dots_to_word(int len, char *word, char *previous_word);
 
 /**
- * Hyphenate word using judy or patricia trie data structure based on branch
- * variable. Returns pointer to allocated string with hyphenation marks
+ * Hyphenate word using judy, cprops patricia trie or patricia trie data
+ * structure based on branch variable. Returns pointer to allocated string with
+ *  hyphenation marks
  */
 char *hyphenate_word(char *word, Pvoid_t *judy_array, patricia *patricia_trie,
-                     const char *utf8_code, bool branch);
+                     cp_trie *cprops_patricia_trie, const char *utf8_code, int branch);
 
 /**
- * Load words from file_name and hyphenate them through judy and patricia trie
- * data structure and time it.
+ * Load words from file_name and hyphenate them through judy, cprops patricia
+ * trie and patricia trie data structure and time it.
  */
-int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie);
+int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie, cp_trie *cprops_patricia_trie);
 
 #endif // !COMPARE_H
