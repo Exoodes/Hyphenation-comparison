@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include "patterns.h"
 
 #include <stdlib.h>
@@ -90,7 +92,7 @@ int patterns_load(Pattern_wrapper *patterns, const char *file_name)
         }
 
         patterns->patterns[patterns->count].code =
-            calloc(strlen_utf8(patterns->patterns[patterns->count].word) + 3, sizeof(char));
+            calloc(strlen_utf8(patterns->patterns[patterns->count].word) + 1, sizeof(char));
         if (patterns->patterns[patterns->count].code == NULL)
         {
             printf("Allocation errro\n");
@@ -105,13 +107,14 @@ int patterns_load(Pattern_wrapper *patterns, const char *file_name)
                 patterns->patterns[patterns->count].code[index] = line[i] - '0';
             }
 
-            if ((line[i] & 0xF8) == 0xF0 || (line[i] & 0xF0) == 0xE0 ||
-                (line[i] & 0xE0) == 0xC0 || (line[i] >= 0 && line[i] <= 127))
+            else if ((line[i] & 0xF8) == 0xF0 || (line[i] & 0xF0) == 0xE0 ||
+                     (line[i] & 0xE0) == 0xC0 || (line[i] >= 0 && line[i] <= 127))
             {
                 index++;
             }
         }
 
+        // patterns_show(patterns, patterns->count);
         patterns->count++;
     }
 
