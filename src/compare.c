@@ -28,7 +28,9 @@ struct timeval TBeg, TEnd;
                    ((double)TBeg.tv_sec * 1000000.0 + (double)TBeg.tv_usec))
 
 // Global constants
-bool verbose = true;
+bool verbose = false;
+bool log_hyphenation = true;
+FILE *log_file;
 char hyphenation_char = '-';
 
 void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array)
@@ -90,30 +92,45 @@ char *hyphenate_from_code(char *word, char *code)
     int len_utf = strlen_utf8(word);
     int hyphen_count = 0;
 
-    for (int i = 0; i <= len_utf; i++)
+    if (log_hyphenation)
+    {
+        fprintf(log_file, "Final hyphenation code: ");
+    }
+
+    for (int i = 1; i < len_utf; i++)
+    {
+        if (log_hyphenation)
+        {
+            fprintf(log_file, "%i", code[i]);
+        }
         if (code[i] % 2 == 1)
             hyphen_count++;
+    }
 
+    if (log_hyphenation)
+    {
+        fprintf(log_file, "\n");
+    }
     char *result = calloc(len + hyphen_count + 1, sizeof(char));
 
-    int r_p = 0;
-    int code_p = 1;
+    int result_index = 0;
+    int code_index = 1;
     for (int i = 1; i < len - 1; i++)
     {
         if ((word[i] & 0xF8) == 0xF0 || (word[i] & 0xF0) == 0xE0 ||
             (word[i] & 0xE0) == 0xC0 || (word[i] >= 0 && word[i] <= 127))
         {
-            if (code[code_p] % 2 == 1 && i != 1)
+            if (code[code_index] % 2 == 1 && i != 1)
             {
-                result[r_p] = hyphenation_char;
-                r_p++;
+                result[result_index] = hyphenation_char;
+                result_index++;
             }
 
-            code_p++;
+            code_index++;
         }
 
-        result[r_p] = word[i];
-        r_p++;
+        result[result_index] = word[i];
+        result_index++;
     }
 
     return result;
@@ -158,7 +175,12 @@ char *hyphenate_word(char *word, Pvoid_t *judy_array, patricia *patricia_trie,
 
     char hyph_code[len + 1];
     memset(hyph_code, 0, (len + 1) * sizeof(char));
-    const char *pattern_list = NULL;
+    const char *pattern_code = NULL;
+
+    if (log_hyphenation)
+    {
+        fprintf(log_file, "Hyphenating word '%s':\n", word);
+    }
 
     for (int i = 1; i <= len; i++)
     {
@@ -167,17 +189,39 @@ char *hyphenate_word(char *word, Pvoid_t *judy_array, patricia *patricia_trie,
             backup = word[(int)utf8_code[j + i]];
             word[(int)utf8_code[j + i]] = '\0';
 
-            pattern_list = _get_pattern(judy_array, patricia_trie,
+            pattern_code = _get_pattern(judy_array, patricia_trie,
                                         cprops_patricia_trie, branch,
                                         &word[(int)utf8_code[j]],
                                         utf8_code[j + i] - utf8_code[j]);
 
-            if (pattern_list != NULL)
+            if (log_hyphenation)
+            {
+                if (pattern_code == NULL)
+                {
+                    fprintf(log_file, "Subword was not found: '%s'\n", &word[(int)utf8_code[j]]);
+                }
+                else
+                {
+                    fprintf(log_file, "Subword was found    : '%s' - pattern: ", &word[(int)utf8_code[j]]);
+                }
+            }
+
+            if (pattern_code != NULL)
             {
                 for (int k = 0; k <= i; k++)
                 {
-                    if (pattern_list[k] > hyph_code[j + k])
-                        hyph_code[j + k] = pattern_list[k];
+                    if (log_hyphenation)
+                    {
+                        fprintf(log_file, "%i", pattern_code[k]);
+                    }
+
+                    if (pattern_code[k] > hyph_code[j + k])
+                        hyph_code[j + k] = pattern_code[k];
+                }
+
+                if (log_hyphenation)
+                {
+                    fputc('\n', log_file);
                 }
             }
 
@@ -186,6 +230,10 @@ char *hyphenate_word(char *word, Pvoid_t *judy_array, patricia *patricia_trie,
     }
 
     char *result = hyphenate_from_code(word, hyph_code);
+    if (log_hyphenation)
+    {
+        fprintf(log_file, "Hyphenating result: '%s'\n\n", result);
+    }
     return result;
 }
 
@@ -336,7 +384,7 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie,
     if (word)
         free(word);
 
-    print_results(time_judy, time_cprops_trie, time_trie, word_count);
+    // print_results(time_judy, time_cprops_trie, time_trie, word_count);
     return 0;
 }
 
@@ -359,6 +407,9 @@ int main(int argc, char const *argv[])
     cp_trie *cprops_patricia_trie = cp_trie_create(COLLECTION_MODE_NOSYNC);
     patricia *patricia_trie = NULL;
     patricia_create(NULL, NULL, NULL, &patricia_trie);
+
+    // Create log file
+    log_file = fopen("hyphenation.log", "w");
 
     // Inserting patterns into data structures
     judy_insert_patterns(&patterns, judy_array_p);
