@@ -114,7 +114,6 @@ int patterns_load(Pattern_wrapper *patterns, const char *file_name)
             }
         }
 
-        // patterns_show(patterns, patterns->count);
         patterns->count++;
     }
 

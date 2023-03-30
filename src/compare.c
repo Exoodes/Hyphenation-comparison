@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <stdbool.h>
 #include <cprops/trie.h>
+#include <unistd.h>
 
 // Judy settings
 #define JUDYERROR_SAMPLE 1 // use default Judy error handler
@@ -22,6 +23,7 @@
 
 // Timing routines
 struct timeval TBeg, TEnd;
+
 #define STARTTm gettimeofday(&TBeg, NULL)
 #define ENDTm gettimeofday(&TEnd, NULL)
 #define DeltaUSec (((double)TEnd.tv_sec * 1000000.0 + (double)TEnd.tv_usec) - \
@@ -29,7 +31,7 @@ struct timeval TBeg, TEnd;
 
 // Global constants
 bool verbose = false;
-bool log_hyphenation = true;
+bool log_hyphenation = false;
 FILE *log_file;
 char hyphenation_char = '-';
 
@@ -48,24 +50,6 @@ void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array)
     if (verbose)
         printf("Insertion in judy data structure            of %u patterns took"
                " %.3f microseconds per pattern\n",
-               patterns->count, DeltaUSec / patterns->count);
-}
-
-void patricia_trie_insert_patterns(Pattern_wrapper *patterns,
-                                   patricia *patricia_trie)
-{
-    STARTTm;
-    for (int i = 0; i < patterns->count; i++)
-    {
-        patricia_insert(patricia_trie, patterns->patterns[i].word,
-                        strlen(patterns->patterns[i].word),
-                        patterns->patterns[i].code);
-    }
-    ENDTm;
-
-    if (verbose)
-        printf("Insertion in patricia trie structure        of %u patterns took "
-               "%.3f microseconds per pattern\n",
                patterns->count, DeltaUSec / patterns->count);
 }
 
@@ -137,7 +121,7 @@ char *hyphenate_from_code(char *word, char *code)
 }
 
 // compare.c private function
-const char *_get_pattern(Pvoid_t *judy_array, patricia *patricia_trie,
+const char *_get_pattern(Pvoid_t *judy_array,
                          cp_trie *cprops_patricia_trie, int branch,
                          char *pattern_word, int len)
 {
@@ -157,16 +141,12 @@ const char *_get_pattern(Pvoid_t *judy_array, patricia *patricia_trie,
         return cp_trie_exact_match(cprops_patricia_trie, pattern_word);
         break;
 
-    case 2:
-        return patricia_lookup(patricia_trie, pattern_word, len);
-        break;
-
     default:
         return NULL;
     }
 }
 
-char *hyphenate_word(char *word, Pvoid_t *judy_array, patricia *patricia_trie,
+char *hyphenate_word(char *word, Pvoid_t *judy_array,
                      cp_trie *cprops_patricia_trie, const char *utf8_code,
                      int branch)
 {
@@ -189,8 +169,7 @@ char *hyphenate_word(char *word, Pvoid_t *judy_array, patricia *patricia_trie,
             backup = word[(int)utf8_code[j + i]];
             word[(int)utf8_code[j + i]] = '\0';
 
-            pattern_code = _get_pattern(judy_array, patricia_trie,
-                                        cprops_patricia_trie, branch,
+            pattern_code = _get_pattern(judy_array, cprops_patricia_trie, branch,
                                         &word[(int)utf8_code[j]],
                                         utf8_code[j + i] - utf8_code[j]);
 
@@ -274,8 +253,7 @@ char *create_utf_array(char *word)
 }
 
 // compare.c private function
-void print_results(double time_judy, double time_cprops_trie, double time_trie,
-                   int word_count)
+void print_results(double time_judy, double time_cprops_trie, int word_count)
 {
     printf("Judy        - Hyphenating %i words took %.2f microseconds "
            "total, %.2f microseconds per word\n",
@@ -283,9 +261,6 @@ void print_results(double time_judy, double time_cprops_trie, double time_trie,
     printf("cprops Trie - Hyphenating %i words took %.2f microseconds "
            "total, %.2f microseconds per word\n",
            word_count, time_cprops_trie, time_cprops_trie / word_count);
-    printf("Trie        - Hyphenating %i words took %.2f microseconds "
-           "total, %.2f microseconds per word\n",
-           word_count, time_trie, time_trie / word_count);
 }
 
 char *add_dots_to_word(int len, char *word, char *previous_word)
@@ -302,8 +277,7 @@ char *add_dots_to_word(int len, char *word, char *previous_word)
     return result;
 }
 
-int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie,
-            cp_trie *cprops_patricia_trie)
+int compare(const char *file_name, Pvoid_t *judy_array, cp_trie *cprops_patricia_trie)
 {
     FILE *fp;
     char *line = NULL;
@@ -313,7 +287,6 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie,
 
     double time_judy = 0;
     double time_cprops_trie = 0;
-    double time_trie = 0;
     int word_count = 0;
 
     fp = fopen(file_name, "r");
@@ -343,7 +316,7 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie,
         char *utf8_code = create_utf_array(word);
 
         STARTTm;
-        char *judy_hyphenated = hyphenate_word(word, judy_array, patricia_trie,
+        char *judy_hyphenated = hyphenate_word(word, judy_array,
                                                cprops_patricia_trie, utf8_code,
                                                0);
         ENDTm;
@@ -351,18 +324,10 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie,
 
         STARTTm;
         char *cprops_trie_hyphenated = hyphenate_word(word, judy_array,
-                                                      patricia_trie,
                                                       cprops_patricia_trie,
                                                       utf8_code, 1);
         ENDTm;
         time_cprops_trie += DeltaUSec;
-
-        STARTTm;
-        char *trie_hyphenated = hyphenate_word(word, judy_array, patricia_trie,
-                                               cprops_patricia_trie, utf8_code,
-                                               2);
-        ENDTm;
-        time_trie += DeltaUSec;
 
         if (strcmp(judy_hyphenated, cprops_trie_hyphenated) != 0)
         {
@@ -370,11 +335,9 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie,
                    cprops_trie_hyphenated);
         }
 
-        // printf("%s\n", judy_hyphenated);
         word_count++;
         free(judy_hyphenated);
         free(cprops_trie_hyphenated);
-        free(trie_hyphenated);
         free(utf8_code);
     }
 
@@ -384,8 +347,30 @@ int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie,
     if (word)
         free(word);
 
-    // print_results(time_judy, time_cprops_trie, time_trie, word_count);
+    print_results(time_judy, time_cprops_trie, word_count);
     return 0;
+}
+
+void space_test_judy(Pattern_wrapper *patterns)
+{
+    Pvoid_t judy_array = (Pvoid_t)NULL;
+    Pvoid_t *judy_array_p = &judy_array;
+
+    judy_insert_patterns(patterns, judy_array_p);
+
+    Word_t freed_count;
+    JSLFA(freed_count, judy_array);
+    patterns_free(patterns);
+}
+
+void space_test_trie(Pattern_wrapper *patterns)
+{
+    cp_trie *cprops_patricia_trie = cp_trie_create(COLLECTION_MODE_NOSYNC);
+
+    cprops_patricia_trie_insert_patterns(patterns, cprops_patricia_trie);
+
+    cp_trie_destroy(cprops_patricia_trie);
+    patterns_free(patterns);
 }
 
 int main(int argc, char const *argv[])
@@ -399,30 +384,42 @@ int main(int argc, char const *argv[])
     patterns.count = 0;
     patterns_load(&patterns, argv[1]);
 
+    // Space testing
+    if (argc > 3 && strcmp(argv[3], "-J") == 0)
+    {
+        space_test_judy(&patterns);
+        return 0;
+    }
+
+    if (argc > 3 && strcmp(argv[3], "-T") == 0)
+    {
+        space_test_trie(&patterns);
+        return 0;
+    }
+
     // Creating judy data structure
     Pvoid_t judy_array = (Pvoid_t)NULL;
     Pvoid_t *judy_array_p = &judy_array;
 
-    // Creating patricia trie data structures
+    // Creating patricia trie data structure
     cp_trie *cprops_patricia_trie = cp_trie_create(COLLECTION_MODE_NOSYNC);
-    patricia *patricia_trie = NULL;
-    patricia_create(NULL, NULL, NULL, &patricia_trie);
 
     // Create log file
-    log_file = fopen("hyphenation.log", "w");
+    if (log_hyphenation)
+    {
+        log_file = fopen("hyphenation.log", "w");
+    }
 
     // Inserting patterns into data structures
     judy_insert_patterns(&patterns, judy_array_p);
-    patricia_trie_insert_patterns(&patterns, patricia_trie);
     cprops_patricia_trie_insert_patterns(&patterns, cprops_patricia_trie);
 
     // Comparing how both data structure do in hyphenation
-    compare(argv[2], &judy_array, patricia_trie, cprops_patricia_trie);
+    compare(argv[2], &judy_array, cprops_patricia_trie);
 
     // Destroying all data structures and freeing all of its memory
     Word_t freed_count;
     JSLFA(freed_count, judy_array);
-    patricia_destroy(patricia_trie);
     cp_trie_destroy(cprops_patricia_trie);
     patterns_free(&patterns);
     return 0;

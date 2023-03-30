@@ -16,9 +16,9 @@ LDLIBS   := -lJudy -lcprops -lpthread -lssl
 
 VALFLAGS := --show-leak-kinds=all --track-origins=yes --leak-check=full --track-fds=yes
 
-INPUT_CZ  := assets/czech_patterns.tex assets/czech_testing_words.dic
+INPUT_CZ  := assets/czech_patterns.tex assets/czech_words.dic
 INPUT_ENG := assets/english_patterns_max.tex assets/english_testing_words.dic
-INPUT := $(INPUT_CZ)
+INPUT := $(INPUT_ENG)
 
 all: $(EXE)
 
@@ -33,8 +33,16 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 $(BIN_DIR) $(OBJ_DIR):
 	mkdir -p $@
 
-run: $(EXE)
-	$(EXE) $(INPUT)
+run: time-test space-test $(EXE)
+
+time-test: $(EXE)
+	@echo "Time testing"
+	@$(EXE) $(INPUT)
+
+space-test: $(EXE)
+	@echo "Space testing"
+	@valgrind $(EXE) $(INPUT) -J > tmpfile.txt 2>&1 ; echo -n "Judy: " ; grep "total heap usage" tmpfile.txt
+	@valgrind $(EXE) $(INPUT) -T > tmpfile.txt 2>&1 ; echo -n "Trie: " ; grep "total heap usage" tmpfile.txt
 
 valgrind: $(EXE)
 	valgrind $(VALFLAGS) $(EXE) $(INPUT)

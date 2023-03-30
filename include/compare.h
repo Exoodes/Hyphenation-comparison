@@ -1,3 +1,4 @@
+
 #ifndef COMPARE_H
 #define COMPARE_H
 
@@ -13,13 +14,6 @@
  * structure pointed. This function is timed for comparison.
  */
 void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array);
-
-/**
- * Insert all patterns stored in Pattern_wrapper variable into patricia trie
- * data structure. This function is timed for comparison.
- */
-void patricia_trie_insert_patterns(Pattern_wrapper *patterns,
-                                   patricia *patricia_trie);
 
 /**
  * Insert all patterns stored in Pattern_wrapper variable into cprops patricia
@@ -50,13 +44,13 @@ char *add_dots_to_word(int len, char *word, char *previous_word);
  * structure based on branch variable. Returns pointer to allocated string with
  * hyphenation marks
  */
-char *hyphenate_word(char *word, Pvoid_t *judy_array, patricia *patricia_trie,
-                     cp_trie *cprops_patricia_trie, const char *utf8_code, int branch);
+char *hyphenate_word(char *word, Pvoid_t *judy_array, cp_trie *cprops_patricia_trie,
+                     const char *utf8_code, int branch);
 
 /**
  * Load words from file_name and hyphenate them through judy, cprops patricia
  * trie and patricia trie data structure and time it.
  */
-int compare(const char *file_name, Pvoid_t *judy_array, patricia *patricia_trie, cp_trie *cprops_patricia_trie);
+int compare(const char *file_name, Pvoid_t *judy_array, cp_trie *cprops_patricia_trie);
 
 #endif // !COMPARE_H
