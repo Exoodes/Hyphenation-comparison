@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 
 #include "patterns.h"
+#include "utils.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -8,24 +9,12 @@
 #include <string.h>
 #include <sys/types.h>
 
-int strlen_utf8(const char *str)
+void patterns_print(Pattern_wrapper *patterns)
 {
-    int c, i, ix, q;
-    for (q = 0, i = 0, ix = strlen(str); i < ix; i++, q++)
+    for (int i = 0; i < patterns->count; i++)
     {
-        c = (unsigned char)str[i];
-        if (c >= 0 && c <= 127)
-            i += 0;
-        else if ((c & 0xE0) == 0xC0)
-            i += 1;
-        else if ((c & 0xF0) == 0xE0)
-            i += 2;
-        else if ((c & 0xF8) == 0xF0)
-            i += 3;
-        else
-            return 0; // invalid utf8
+        patterns_show(patterns, i);
     }
-    return q;
 }
 
 void patterns_show(Pattern_wrapper *patterns, int index)
@@ -40,6 +29,9 @@ void patterns_show(Pattern_wrapper *patterns, int index)
 
 int patterns_load(Pattern_wrapper *patterns, const char *file_name)
 {
+    patterns->patterns = NULL;
+    patterns->count = 0;
+
     FILE *fp;
     char *line = NULL;
     size_t len = 0;

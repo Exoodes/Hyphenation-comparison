@@ -1,8 +1,6 @@
-
 #ifndef COMPARE_H
 #define COMPARE_H
 
-#include "patricia_trie.h"
 #include "patterns.h"
 
 #include <Judy.h>
@@ -10,47 +8,24 @@
 #include <cprops/trie.h>
 
 /**
- * Insert all patterns stored in Pattern_wrapper variable into judy data
- * structure pointed. This function is timed for comparison.
+ * This function inserts all patterns from pattern_list to Judy and then free
+ * all of its memory. Should be run with Valgrind or other memory measuring
+ * software
  */
-void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array);
+void space_test_judy(Pattern_wrapper *pattern_list);
 
 /**
- * Insert all patterns stored in Pattern_wrapper variable into cprops patricia
- * trie data structure. This function is timed for comparison.
+ * This function inserts all patterns from pattern_list to Cprops Trie and then
+ * free all of its memory. Should be run with Valgrind or other memory measuring
+ * software
  */
-void cprops_patricia_trie_insert_patterns(Pattern_wrapper *patterns,
-                                          cp_trie *patricia_trie);
-/**
- * This functions takes a word and full hyphenation code and returns an
- * allocated hyphenated word. Hyphenation character can be changed (TODO).
- */
-char *hyphenate_from_code(char *word, char *code);
+void space_test_trie(Pattern_wrapper *pattern_list);
 
 /**
- * Create array which contains values of sum of byte length of characters.
- * abcábč returns [0, 1, 2, 3, 5, 6, 8]
+ * Load words from file_name and hyphenate them with patterns stored in judy and
+ * in cprops trie. This proccess is timed.
  */
-char *create_utf_array(char *word);
-
-/**
- * Add one dot before and one after word. Input must be pointer to allocated
- * memory on heap.
- */
-char *add_dots_to_word(int len, char *word, char *previous_word);
-
-/**
- * Hyphenate word using judy, cprops patricia trie or patricia trie data
- * structure based on branch variable. Returns pointer to allocated string with
- * hyphenation marks
- */
-char *hyphenate_word(char *word, Pvoid_t *judy_array, cp_trie *cprops_patricia_trie,
-                     const char *utf8_code, int branch);
-
-/**
- * Load words from file_name and hyphenate them through judy, cprops patricia
- * trie and patricia trie data structure and time it.
- */
-int compare(const char *file_name, Pvoid_t *judy_array, cp_trie *cprops_patricia_trie);
+void compare(const char *file_name, Pvoid_t *judy_array,
+             cp_trie *cprops_patricia_trie);
 
 #endif // !COMPARE_H

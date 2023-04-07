@@ -20,7 +20,8 @@ typedef struct
     int count;
 } Pattern_wrapper;
 
-int strlen_utf8(const char *str);
+// Prints all of the patterns in format mention above
+void patterns_print(Pattern_wrapper *patterns);
 
 // Helper function for showing loaded pattern in better form
 void patterns_show(Pattern_wrapper *patterns, int index);
