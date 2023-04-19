@@ -40,12 +40,16 @@ bool command_parser(const char *word, int read)
     if (word[1] == 'l')
     {
         left_hyphen_min = atoi(&word[2]);
+        if (left_hyphen_min == 0)
+            left_hyphen_min = 2;
         printf("left_hyphen_min has been changed to: %i\n", left_hyphen_min);
     }
 
     if (word[1] == 'r')
     {
         right_hyphen_min = atoi(&word[2]);
+        if (right_hyphen_min == 0)
+            right_hyphen_min = 2;
         printf("right_hyphen_min has been changed to: %i\n", right_hyphen_min);
     }
 
@@ -54,7 +58,6 @@ bool command_parser(const char *word, int read)
 
 void hyphenator(const char *file_name, Pvoid_t *pattern_judy)
 {
-
     FILE *fp;
     char *line = NULL;
     size_t len = 0;
@@ -87,10 +90,11 @@ void hyphenator(const char *file_name, Pvoid_t *pattern_judy)
             read--;
         }
 
-        // Skip if now word was loaded
+        // Skip if no word was loaded
         if (read == 0)
             continue;
 
+        // commands from command line 
         if (line[0] == ':')
         {
             if (command_parser(line, read))
