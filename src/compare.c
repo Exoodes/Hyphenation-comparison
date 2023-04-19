@@ -93,13 +93,13 @@ void compare(const char *file_name, Pvoid_t *pattern_judy, cp_trie *pattern_trie
         time_judy += DeltaUSec;
 
         STARTTm;
-        char *cprops_trie_hyphenated = trie_hyphenate(word, pattern_trie, utf8_code);
+        char *trie_hyphenated = trie_hyphenate(word, pattern_trie, utf8_code);
         ENDTm;
         time_trie += DeltaUSec;
 
         word_count++;
         free(judy_hyphenated);
-        free(cprops_trie_hyphenated);
+        free(trie_hyphenated);
         free(utf8_code);
     }
 
@@ -114,17 +114,19 @@ void compare(const char *file_name, Pvoid_t *pattern_judy, cp_trie *pattern_trie
 
 int main(int argc, char **argv)
 {
+
     // Check for valid size of judy's internal type
     assert(sizeof(Word_t) == sizeof(char *));
 
     // Parse command line arguments
     bool memory_test_Judy_flag = false;
     bool memory_test_Trie_flag = false;
+    bool memory_test_only_patterns_flag = false;
     char *patterns_filepath = NULL;
     char *words_filepath = NULL;
     int c;
 
-    while ((c = getopt(argc, argv, "jtv")) != -1)
+    while ((c = getopt(argc, argv, "jtpv")) != -1)
         switch (c)
         {
         case 'j':
@@ -132,6 +134,9 @@ int main(int argc, char **argv)
             break;
         case 't':
             memory_test_Trie_flag = true;
+            break;
+        case 'p':
+            memory_test_only_patterns_flag = true;
             break;
         case 'v':
             verbose = true;
@@ -153,6 +158,12 @@ int main(int argc, char **argv)
     patterns_load(&pattern_list, patterns_filepath);
 
     // Memory testing
+    if (memory_test_only_patterns_flag)
+    {
+        patterns_free(&pattern_list);
+        return 0;
+    }
+
     if (memory_test_Judy_flag)
     {
         space_test_judy(&pattern_list);
