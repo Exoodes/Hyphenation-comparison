@@ -17,7 +17,7 @@ SRC_COMPARE := $(SRC_DIR)/compare.c $(SRC_DIR)/patterns.c $(SRC_DIR)/judy.c $(SR
 OBJ_COMPARE := $(SRC_COMPARE:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 # Inputs for testing compare program
-# Change INPUT variable for ano other input
+# Change INPUT variable for any other input
 INPUT_CZ      := assets/czech_patterns.tex       assets/czech_words.dic
 INPUT_THAI    := assets/thai_patterns.tex        assets/thai_words.dic
 INPUT_ENG     := assets/english_patterns.tex     assets/english_words.dic
