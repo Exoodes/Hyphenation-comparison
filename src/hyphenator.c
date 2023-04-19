@@ -22,6 +22,12 @@ int left_hyphen_min = 2;
 int right_hyphen_min = 2;
 bool verbose = false;
 char hyphenation_char = '-';
+char usage[] = "\nUsage: hyphenator [options] pattern_file\n"
+               "hyphenator program loads hyphenation patterns and then hyphenates words from the file or terminal input\n\n"
+               "Options:\n"
+               "\t-lx\t\tx can be an arbitrary number higher than 0, it sets `left_hyphen_min` for hyphenating process\n"
+               "\t-rx\t\tx can be an arbitrary number higher than 0, it sets `right_hyphen_min` for hyphenating process\n"
+               "\t-f file_name\tspecifies a file with words to be hyphenated, if not specified, words from terminal will be hyphenated\n";
 
 bool command_parser(const char *word, int read)
 {
@@ -118,9 +124,12 @@ int main(int argc, char **argv)
     char *words_filepath = NULL;
 
     int c;
-    while ((c = getopt(argc, argv, "vl:r:f:")) != -1)
+    while ((c = getopt(argc, argv, "hvl:r:f:")) != -1)
         switch (c)
         {
+        case 'h':
+            printf("%s", usage);
+            return 0;
         case 'l':
             left_hyphen_min = atoi(optarg);
             break;
