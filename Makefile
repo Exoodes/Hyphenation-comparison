@@ -28,8 +28,7 @@ INPUT := $(INPUT_THAI)
 EXE_HYPHENATOR := $(BIN_DIR)/hyphenator
 SRC_HYPHENATOR := $(SRC_DIR)/hyphenator.c $(SRC_DIR)/patterns.c $(SRC_DIR)/judy.c $(SRC_DIR)/utils.c 
 OBJ_HYPHENATOR := $(SRC_HYPHENATOR:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-INPUT_HYPHENATOR_TMP := -l2 -r2 -f assets/thai_words.dic assets/thai_patterns.tex
-INPUT_HYPHENATOR := -h -l2 -r2 -f assets/czech_words.dic assets/czech_patterns.tex
+INPUT_HYPHENATOR := -l2 -r2 -f assets/czech_words.dic assets/czech_patterns.tex
 
 all: $(EXE_COMPARE) $(EXE_HYPHENATOR)
 
