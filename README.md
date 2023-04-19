@@ -2,7 +2,7 @@
 This repository is part of my Bachelor thesis [`Judy`](https://sourceforge.net/projects/judy/). 
 It contains 2 different programs. 
 The first one is called `compare`, which compares Judy data structure and Trie data structure based on hyphenating words with hyphenation patterns.
-And second on called the `hyphenator`, which loads hyphenation patterns and then hyphenates words from the file or terminal input.
+And second on called the `hyphenator`, which loads hyphenation patterns and then hyphenates words from the file or terminal input. Multiple words can be hyphenated on one line, but the characters `.` and `-` should be avoided for correct patterns usage.
 
 ## Installation
 Needed prerequisites 
