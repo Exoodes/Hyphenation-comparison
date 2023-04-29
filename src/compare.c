@@ -23,11 +23,11 @@ char hyphenation_char = '-';
 void print_results(double time_judy, double time_trie, int word_count)
 {
     printf("Hyphenation results\n");
-    printf("Judy        - Hyphenating %i words took %.2f microseconds "
-           "total, %.2f microseconds per word\n",
+    printf("Judy        - Hyphenating %i words took %.0f microseconds "
+           "total, %.3f microseconds per word\n",
            word_count, time_judy, time_judy / word_count);
-    printf("cprops Trie - Hyphenating %i words took %.2f microseconds "
-           "total, %.2f microseconds per word\n",
+    printf("cprops Trie - Hyphenating %i words took %.0f microseconds "
+           "total, %.3f microseconds per word\n",
            word_count, time_trie, time_trie / word_count);
 }
 
