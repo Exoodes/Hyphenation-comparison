@@ -4,6 +4,10 @@
 # Unignore all dirs
 !*/
 
+# Unignore .dic, .tex
+!*.dic
+!*.tex
+
 # Unignore .txt, .c, .h
 !*.txt
 !*.c
