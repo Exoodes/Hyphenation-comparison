@@ -1,6 +1,9 @@
 #ifndef COMPARE_H
 #define COMPARE_H
 
+#include <Judy.h>
+#include <stdbool.h>
+
 /**
  * Simple parser for commands written on command line when hyphenating words
  */
