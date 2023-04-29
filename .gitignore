@@ -5,6 +5,7 @@
 !*/
 
 # Unignore .txt, .c, .h
+!*.txt
 !*.c
 !*.h
 
