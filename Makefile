@@ -17,12 +17,28 @@ SRC_COMPARE := $(SRC_DIR)/compare.c $(SRC_DIR)/patterns.c $(SRC_DIR)/judy.c $(SR
 OBJ_COMPARE := $(SRC_COMPARE:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 # Inputs for testing compare program
-# Change INPUT variable for any other language input
-INPUT_CZ      := assets/czech_patterns.tex       assets/czech_words.dic
-INPUT_THAI    := assets/thai_patterns.tex        assets/thai_words.dic
-INPUT_ENG     := assets/english_patterns.tex     assets/english_words.dic
-INPUT_ENG_MAX := assets/english_patterns_max.tex assets/english_words.dic
-INPUT := $(INPUT_THAI)
+INPUT_HR := croatian
+INPUT_CZ := czech #
+INPUT_DA := danish
+INPUT_NL := dutch
+INPUT_EN := english
+INPUT_FR := french
+INPUT_KA := georgian
+INPUT_DE := german
+INPUT_IT := italian
+INPUT_NB := norwegian
+INPUT_PL := polish
+INPUT_PT := portuguese
+INPUT_RU := russian
+INPUT_ES := spanish
+INPUT_TH := thai
+INPUT_TR := turkish
+INPUT_UK := ukrainian
+
+# Change INPUT_NAME variable for any other language input, for exmaple 
+# INPUT_NAME := $(INPUT_UK) for ukrainian patterns and words
+INPUT_NAME := $(INPUT_UK)
+INPUT := assets/$(INPUT_NAME)_patterns.tex assets/$(INPUT_NAME)_words.dic
 
 # Variables for hyphenator program
 EXE_HYPHENATOR := $(BIN_DIR)/hyphenator
@@ -49,45 +65,19 @@ $(BIN_DIR) $(OBJ_DIR):
 run-tests: time-test space-test $(EXE_COMPARE)
 
 time-test: $(EXE_COMPARE)
-	@echo "Time testing"
+	@echo "Time testing with $(INPUT_NAME) language"
 	@$(EXE_COMPARE) $(INPUT)
 
 memory-test: $(EXE_COMPARE)
-	@echo "Memory testing"
+	@echo "Memory testing with $(INPUT_NAME) language"
 	@echo "\nWith valgrind"
-	@echo "Czech"
-	@valgrind $(EXE_COMPARE) $(INPUT_CZ) -p > tmpfile.txt 2>&1 ; echo -n "Only patterns:" ; grep "total heap usage" tmpfile.txt
-	@valgrind $(EXE_COMPARE) $(INPUT_CZ) -j > tmpfile.txt 2>&1 ; echo -n "Judy: " ; grep "total heap usage" tmpfile.txt
-	@valgrind $(EXE_COMPARE) $(INPUT_CZ) -t > tmpfile.txt 2>&1 ; echo -n "Trie: " ; grep "total heap usage" tmpfile.txt
-	@echo "English"
-	@valgrind $(EXE_COMPARE) $(INPUT_ENG) -p > tmpfile.txt 2>&1 ; echo -n "Only patterns: " ; grep "total heap usage" tmpfile.txt
-	@valgrind $(EXE_COMPARE) $(INPUT_ENG) -j > tmpfile.txt 2>&1 ; echo -n "Judy: " ; grep "total heap usage" tmpfile.txt
-	@valgrind $(EXE_COMPARE) $(INPUT_ENG) -t > tmpfile.txt 2>&1 ; echo -n "Trie: " ; grep "total heap usage" tmpfile.txt
-	@echo "English max"
-	@valgrind $(EXE_COMPARE) $(INPUT_ENG_MAX) -p > tmpfile.txt 2>&1 ; echo -n "Only patterns: " ; grep "total heap usage" tmpfile.txt
-	@valgrind $(EXE_COMPARE) $(INPUT_ENG_MAX) -j > tmpfile.txt 2>&1 ; echo -n "Judy: " ; grep "total heap usage" tmpfile.txt
-	@valgrind $(EXE_COMPARE) $(INPUT_ENG_MAX) -t > tmpfile.txt 2>&1 ; echo -n "Trie: " ; grep "total heap usage" tmpfile.txt
-	@echo "Thai"
-	@valgrind $(EXE_COMPARE) $(INPUT_THAI) -p > tmpfile.txt 2>&1 ; echo -n "Only patterns: " ; grep "total heap usage" tmpfile.txt
-	@valgrind $(EXE_COMPARE) $(INPUT_THAI) -j > tmpfile.txt 2>&1 ; echo -n "Judy: " ; grep "total heap usage" tmpfile.txt
-	@valgrind $(EXE_COMPARE) $(INPUT_THAI) -t > tmpfile.txt 2>&1 ; echo -n "Trie: " ; grep "total heap usage" tmpfile.txt
+	@valgrind $(EXE_COMPARE) $(INPUT) -p > tmpfile.txt 2>&1 ; echo -n "Only patterns : " ; grep "total heap usage" tmpfile.txt
+	@valgrind $(EXE_COMPARE) $(INPUT) -j > tmpfile.txt 2>&1 ; echo -n "Judy          : " ; grep "total heap usage" tmpfile.txt
+	@valgrind $(EXE_COMPARE) $(INPUT) -t > tmpfile.txt 2>&1 ; echo -n "Trie          : " ; grep "total heap usage" tmpfile.txt
 	@echo "\nWith time command"
-	@echo "Czech"
-	@time --verbose $(EXE_COMPARE) $(INPUT_CZ) -p > tmpfile.txt 2>&1 ; echo -n "Only patterns: " ; grep "Maximum resident set size" tmpfile.txt
-	@time --verbose $(EXE_COMPARE) $(INPUT_CZ) -j > tmpfile.txt 2>&1 ; echo -n "Judy: " ; grep "Maximum resident set size" tmpfile.txt
-	@time --verbose $(EXE_COMPARE) $(INPUT_CZ) -t > tmpfile.txt 2>&1 ; echo -n "Trie: " ; grep "Maximum resident set size" tmpfile.txt
-	@echo "English"
-	@time --verbose $(EXE_COMPARE) $(INPUT_ENG) -p > tmpfile.txt 2>&1 ; echo -n "Only patterns: " ; grep "Maximum resident set size" tmpfile.txt
-	@time --verbose $(EXE_COMPARE) $(INPUT_ENG) -j > tmpfile.txt 2>&1 ; echo -n "Judy: " ; grep "Maximum resident set size" tmpfile.txt
-	@time --verbose $(EXE_COMPARE) $(INPUT_ENG) -t > tmpfile.txt 2>&1 ; echo -n "Trie: " ; grep "Maximum resident set size" tmpfile.txt
-	@echo "English max"
-	@time --verbose $(EXE_COMPARE) $(INPUT_ENG_MAX) -p > tmpfile.txt 2>&1 ; echo -n "Only patterns: " ; grep "Maximum resident set size" tmpfile.txt
-	@time --verbose $(EXE_COMPARE) $(INPUT_ENG_MAX) -j > tmpfile.txt 2>&1 ; echo -n "Judy: " ; grep "Maximum resident set size" tmpfile.txt
-	@time --verbose $(EXE_COMPARE) $(INPUT_ENG_MAX) -t > tmpfile.txt 2>&1 ; echo -n "Trie: " ; grep "Maximum resident set size" tmpfile.txt
-	@echo "Thai"
-	@time --verbose $(EXE_COMPARE) $(INPUT_THAI) -p > tmpfile.txt 2>&1 ; echo -n "Only patterns: " ; grep "Maximum resident set size" tmpfile.txt
-	@time --verbose $(EXE_COMPARE) $(INPUT_THAI) -j > tmpfile.txt 2>&1 ; echo -n "Judy: " ; grep "Maximum resident set size" tmpfile.txt
-	@time --verbose $(EXE_COMPARE) $(INPUT_THAI) -t > tmpfile.txt 2>&1 ; echo -n "Trie: " ; grep "Maximum resident set size" tmpfile.txt
+	@time --verbose $(EXE_COMPARE) $(INPUT) -p > tmpfile.txt 2>&1 ; echo -n "Only patterns : " ; grep "Maximum resident set size" tmpfile.txt
+	@time --verbose $(EXE_COMPARE) $(INPUT) -j > tmpfile.txt 2>&1 ; echo -n "Judy          : " ; grep "Maximum resident set size" tmpfile.txt
+	@time --verbose $(EXE_COMPARE) $(INPUT) -t > tmpfile.txt 2>&1 ; echo -n "Trie          : " ; grep "Maximum resident set size" tmpfile.txt
 	@rm tmpfile.txt
 
 hyphenator: $(EXE_HYPHENATOR)
