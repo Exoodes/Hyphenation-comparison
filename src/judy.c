@@ -23,9 +23,9 @@ void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array)
     ENDTm;
 
     if (verbose)
-        printf("Insertion in judy data structure            of %u patterns took"
-               " %.3f microseconds per pattern\n",
-               patterns->count, DeltaUSec / patterns->count);
+        printf("Insertion in judy data structure   of %u patterns "
+               "took %8.f miliseconds (%.3f per pattern)\n",
+               patterns->count, DeltaUSec, DeltaUSec / patterns->count);
 }
 
 char *judy_hyphenate(char *word, Pvoid_t *pattern_judy, const char *utf8_code)

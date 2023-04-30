@@ -17,9 +17,9 @@ void trie_insert_patterns(Pattern_wrapper *patterns, cp_trie *patricia_trie)
     ENDTm;
 
     if (verbose)
-        printf("Insertion in cprops patricia trie structure of %u patterns "
-               "took %.3f microseconds per pattern\n",
-               patterns->count, DeltaUSec / patterns->count);
+        printf("Insertion in cprops trie structure of %u patterns "
+               "took %8.0f miliseconds (%.3f per pattern)\n",
+               patterns->count, DeltaUSec, DeltaUSec / patterns->count);
 }
 
 char *trie_hyphenate(char *word, cp_trie *cprops_patricia_trie, const char *utf8_code)
