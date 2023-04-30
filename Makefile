@@ -18,7 +18,7 @@ OBJ_COMPARE := $(SRC_COMPARE:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 # Inputs for testing compare program
 INPUT_HR := croatian
-INPUT_CZ := czech #
+INPUT_CZ := czech
 INPUT_DA := danish
 INPUT_NL := dutch
 INPUT_EN := english
@@ -35,16 +35,16 @@ INPUT_TH := thai
 INPUT_TR := turkish
 INPUT_UK := ukrainian
 
-# Change INPUT_NAME variable for any other language input, for exmaple 
-# INPUT_NAME := $(INPUT_UK) for ukrainian patterns and words
-INPUT_NAME := $(INPUT_UK)
-INPUT := assets/$(INPUT_NAME)_patterns.tex assets/$(INPUT_NAME)_words.dic
+# Change INPUT_LANGUAGE variable for any other language input, for exmaple 
+# INPUT_LANGUAGE := $(INPUT_UK) for ukrainian patterns and words
+INPUT_LANGUAGE := $(INPUT_UK)
+INPUT := assets/$(INPUT_LANGUAGE)_patterns.tex assets/$(INPUT_LANGUAGE)_words.dic
 
 # Variables for hyphenator program
 EXE_HYPHENATOR := $(BIN_DIR)/hyphenator
 SRC_HYPHENATOR := $(SRC_DIR)/hyphenator.c $(SRC_DIR)/patterns.c $(SRC_DIR)/judy.c $(SRC_DIR)/utils.c 
 OBJ_HYPHENATOR := $(SRC_HYPHENATOR:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-INPUT_HYPHENATOR := -l2 -r2 -f assets/czech_words.dic assets/czech_patterns.tex
+INPUT_HYPHENATOR := -l2 -r2 -f assets/$(INPUT_UK)_words.dic assets/$(INPUT_UK)_patterns.tex
 
 all: $(EXE_COMPARE) $(EXE_HYPHENATOR)
 
@@ -65,11 +65,12 @@ $(BIN_DIR) $(OBJ_DIR):
 run-tests: time-test space-test $(EXE_COMPARE)
 
 time-test: $(EXE_COMPARE)
-	@echo "Time testing with $(INPUT_NAME) language"
-	@$(EXE_COMPARE) $(INPUT)
+	@echo "Time testing with $(INPUT_LANGUAGE) language"
+	@$(EXE_COMPARE) -v -i $(INPUT)
+	@$(EXE_COMPARE)  $(INPUT)
 
 memory-test: $(EXE_COMPARE)
-	@echo "Memory testing with $(INPUT_NAME) language"
+	@echo "Memory testing with $(INPUT_LANGUAGE) language"
 	@echo "\nWith valgrind"
 	@valgrind $(EXE_COMPARE) $(INPUT) -p > tmpfile.txt 2>&1 ; echo -n "Only patterns : " ; grep "total heap usage" tmpfile.txt
 	@valgrind $(EXE_COMPARE) $(INPUT) -j > tmpfile.txt 2>&1 ; echo -n "Judy          : " ; grep "total heap usage" tmpfile.txt
