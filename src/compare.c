@@ -23,11 +23,11 @@ char hyphenation_char = '-';
 void print_results(double time_judy, double time_trie, int word_count)
 {
     printf("Hyphenation results\n");
-    printf("Judy        - Hyphenating %i words took %.0f microseconds "
-           "total, %.3f microseconds per word\n",
+    printf("Hyphenating %i words with patterns stored in Judy        took %8.0f"
+           " microseconds total, %4.3f microseconds per word\n",
            word_count, time_judy, time_judy / word_count);
-    printf("cprops Trie - Hyphenating %i words took %.0f microseconds "
-           "total, %.3f microseconds per word\n",
+    printf("Hyphenating %i words with patterns stored in cprops Trie took %8.0f"
+           " microseconds total, %4.3f microseconds per word\n",
            word_count, time_trie, time_trie / word_count);
 }
 
@@ -119,6 +119,7 @@ int main(int argc, char **argv)
     assert(sizeof(Word_t) == sizeof(char *));
 
     // Parse command line arguments
+    bool time_test_insert_flag = false;
     bool memory_test_Judy_flag = false;
     bool memory_test_Trie_flag = false;
     bool memory_test_only_patterns_flag = false;
@@ -126,7 +127,7 @@ int main(int argc, char **argv)
     char *words_filepath = NULL;
     int c;
 
-    while ((c = getopt(argc, argv, "jtpv")) != -1)
+    while ((c = getopt(argc, argv, "jtpvi")) != -1)
         switch (c)
         {
         case 'j':
@@ -137,6 +138,9 @@ int main(int argc, char **argv)
             break;
         case 'p':
             memory_test_only_patterns_flag = true;
+            break;
+        case 'i':
+            time_test_insert_flag = true;
             break;
         case 'v':
             verbose = true;
@@ -187,7 +191,8 @@ int main(int argc, char **argv)
     trie_insert_patterns(&pattern_list, pattern_trie);
 
     // Comparing how both data structure do in hyphenation
-    compare(words_filepath, &pattern_judy, pattern_trie);
+    if (!time_test_insert_flag)
+        compare(words_filepath, &pattern_judy, pattern_trie);
 
     // Destroying all data structures and freeing all of its memory
     Word_t freed_count;
