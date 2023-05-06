@@ -5,8 +5,8 @@
 #include "patterns.h"
 
 /**
- * Insert all patterns stored in Pattern_wrapper variable into judy data
- * structure. This function is timed for comparison(outputted only with -v).
+ * Insert all patterns stored in patterns variable into judy data structure. 
+ * This function is timed for comparison(outputted only with -v option).
  */
 void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array);
 
