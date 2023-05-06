@@ -2,6 +2,9 @@
 # performance and for hyphenator program which is used to to hyphenate words
 # using hyphenation patterns
 
+# time command path
+TIME_PATH := /usr/bin/time
+
 # Folder names
 SRC_DIR := src
 OBJ_DIR := obj
@@ -13,7 +16,7 @@ CC := gcc
 # Flags for Compiler and linker
 CPPFLAGS := -Iinclude -MMD -MP 
 CFLAGS   := -Wall -D_REENTRANT -D_XOPEN_SOURCE=500 -ggdb3
-LDLIBS   := -lJudy -lcprops -lpthread -lssl
+LDLIBS   := -lJudy -lcprops
 
 # Variables for compare program
 EXE_COMPARE := $(BIN_DIR)/compare
@@ -67,7 +70,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 $(BIN_DIR) $(OBJ_DIR):
 	mkdir -p $@
 
-run-tests: time-test space-test $(EXE_COMPARE)
+run-tests: time-test memory-test $(EXE_COMPARE)
 
 time-test: $(EXE_COMPARE)
 	@echo "Time testing with $(INPUT_LANGUAGE) language"
@@ -81,9 +84,9 @@ memory-test: $(EXE_COMPARE)
 	@valgrind $(EXE_COMPARE) $(INPUT) -j > tmpfile.txt 2>&1 ; echo -n "Judy          : " ; grep "total heap usage" tmpfile.txt
 	@valgrind $(EXE_COMPARE) $(INPUT) -t > tmpfile.txt 2>&1 ; echo -n "Trie          : " ; grep "total heap usage" tmpfile.txt
 	@echo "\nWith time command"
-	@time --verbose $(EXE_COMPARE) $(INPUT) -p > tmpfile.txt 2>&1 ; echo -n "Only patterns : " ; grep "Maximum resident set size" tmpfile.txt
-	@time --verbose $(EXE_COMPARE) $(INPUT) -j > tmpfile.txt 2>&1 ; echo -n "Judy          : " ; grep "Maximum resident set size" tmpfile.txt
-	@time --verbose $(EXE_COMPARE) $(INPUT) -t > tmpfile.txt 2>&1 ; echo -n "Trie          : " ; grep "Maximum resident set size" tmpfile.txt
+	@$(TIME_PATH) --verbose $(EXE_COMPARE) $(INPUT) -p > tmpfile.txt 2>&1 ; echo -n "Only patterns : " ; grep "Maximum resident set size" tmpfile.txt
+	@$(TIME_PATH) --verbose $(EXE_COMPARE) $(INPUT) -j > tmpfile.txt 2>&1 ; echo -n "Judy          : " ; grep "Maximum resident set size" tmpfile.txt
+	@$(TIME_PATH) --verbose $(EXE_COMPARE) $(INPUT) -t > tmpfile.txt 2>&1 ; echo -n "Trie          : " ; grep "Maximum resident set size" tmpfile.txt
 	@rm tmpfile.txt
 
 hyphenator: $(EXE_HYPHENATOR)

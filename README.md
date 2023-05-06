@@ -6,10 +6,12 @@ And second on called the `hyphenator`, which loads hyphenation patterns and then
 
 ## Installation
 Needed prerequisites 
-- GNU coreutils
 - make
+- gcc
 - Judy library - download from [here](https://sourceforge.net/projects/judy/) 
 - Cprops library - download from [here](https://sourceforge.net/projects/cprops/files/)
+- Valgrind
+- time command - If the `time` command is installed in a path other than `/usr/bin/time`, it needs to be manually updated in the Makefile.
 
 Then run `make`
 
@@ -20,13 +22,13 @@ Then run `make`
 - `make hyphenator` crate hyphenator program
 
 ### Hyphenator usage
-- The first arguments must be  options
+- The first argument must be  options
     - `-lx` where x can be an arbitrary number higher than 0, it sets `left_hyphen_min` for hyphenating process
     - `-rx` where x can be an arbitrary number higher than 0, it sets `right_hyphen_min` for hyphenating process
-    - `-f `file_path` option specifies a file with words to be hyphenated, if not specified, words from terminal will be hyphenated
+    - `-f file_path` option specifies a file with words to be hyphenated, if not specified, words from the terminal will be hyphenated
 - After the arguments must be a file with only patterns
 - Example of usage for hyphenation from file `./bin/hyphenator -l2 -r2 -f assets/thai_words.dic assets/thai_patterns.tex` or from terminal `./bin/hyphenator -l2 -r2 assets/thai_patterns.tex`
-- When hyphenating from the terminal, some commands can be used to change hyphenation process
+- When hyphenating from the terminal, some commands can be used to change the hyphenation process
     - `:q` Ends the hyphenator program
     - `:lx` Sets the `left_hyphen_min` to number `x`
     - `:rx` Sets the `right_hyphen_min` to number `x`
