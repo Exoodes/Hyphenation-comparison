@@ -6,7 +6,7 @@
 #include <cprops/trie.h>
 
 /**
- * Insert all patterns stored in Pattern_wrapper variable into Cprops Trie data
+ * Insert all patterns stored in patterns variable into Cprops Trie data
  * structure. This function is timed for comparison(outputted only with -v).
  */
 void trie_insert_patterns(Pattern_wrapper *patterns, cp_trie *patricia_trie);

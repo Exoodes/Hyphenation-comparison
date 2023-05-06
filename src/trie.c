@@ -18,7 +18,7 @@ void trie_insert_patterns(Pattern_wrapper *patterns, cp_trie *patricia_trie)
 
     if (verbose)
         printf("Insertion in cprops trie structure of %u patterns "
-               "took %8.0f miliseconds (%.3f per pattern)\n",
+               "took %8.0f microseconds (%.3f per pattern)\n",
                patterns->count, DeltaUSec, DeltaUSec / patterns->count);
 }
 
