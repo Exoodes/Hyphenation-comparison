@@ -1,4 +1,8 @@
-# Dictionaries
+# Simple Makefile for compare program, which is used for testing Judy 
+# performance and for hyphenator program which is used to to hyphenate words
+# using hyphenation patterns
+
+# Folder names
 SRC_DIR := src
 OBJ_DIR := obj
 BIN_DIR := bin
@@ -6,9 +10,9 @@ BIN_DIR := bin
 # Compiler
 CC := gcc
 
-# Flags for Compile and linker
+# Flags for Compiler and linker
 CPPFLAGS := -Iinclude -MMD -MP 
-CFLAGS   := -Wall -D_REENTRANT -D_XOPEN_SOURCE=500 -ggdb3           
+CFLAGS   := -Wall -D_REENTRANT -D_XOPEN_SOURCE=500 -ggdb3
 LDLIBS   := -lJudy -lcprops -lpthread -lssl
 
 # Variables for compare program
@@ -16,7 +20,7 @@ EXE_COMPARE := $(BIN_DIR)/compare
 SRC_COMPARE := $(SRC_DIR)/compare.c $(SRC_DIR)/patterns.c $(SRC_DIR)/judy.c $(SRC_DIR)/trie.c $(SRC_DIR)/utils.c 
 OBJ_COMPARE := $(SRC_COMPARE:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-# Inputs for testing compare program
+# Inputs for compare program
 INPUT_HR := croatian
 INPUT_CZ := czech
 INPUT_DA := danish
@@ -34,17 +38,18 @@ INPUT_ES := spanish
 INPUT_TH := thai
 INPUT_TR := turkish
 INPUT_UK := ukrainian
+INPUT_COMBINED := combined
 
-# Change INPUT_LANGUAGE variable for any other language input, for exmaple 
-# INPUT_LANGUAGE := $(INPUT_UK) for ukrainian patterns and words
-INPUT_LANGUAGE := $(INPUT_UK)
+# Change INPUT_LANGUAGE variable for any other language input from above, for 
+# example: INPUT_LANGUAGE := $(INPUT_UK) for ukrainian patterns and words
+INPUT_LANGUAGE := $(INPUT_TH)
 INPUT := assets/$(INPUT_LANGUAGE)_patterns.tex assets/$(INPUT_LANGUAGE)_words.dic
 
 # Variables for hyphenator program
 EXE_HYPHENATOR := $(BIN_DIR)/hyphenator
 SRC_HYPHENATOR := $(SRC_DIR)/hyphenator.c $(SRC_DIR)/patterns.c $(SRC_DIR)/judy.c $(SRC_DIR)/utils.c 
 OBJ_HYPHENATOR := $(SRC_HYPHENATOR:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-INPUT_HYPHENATOR := -l2 -r2 -f assets/$(INPUT_UK)_words.dic assets/$(INPUT_UK)_patterns.tex
+INPUT_HYPHENATOR := -l2 -r2 -f assets/$(INPUT_LANGUAGE)_words.dic assets/$(INPUT_LANGUAGE)_patterns.tex
 
 all: $(EXE_COMPARE) $(EXE_HYPHENATOR)
 
