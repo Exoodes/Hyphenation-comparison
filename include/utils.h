@@ -6,7 +6,8 @@
 #include <stdlib.h>
 
 // Timing routines
-struct timeval TBeg, TEnd;
+extern struct timeval TBeg;
+extern struct timeval TEnd;
 
 #define STARTTm gettimeofday(&TBeg, NULL)
 #define ENDTm gettimeofday(&TEnd, NULL)

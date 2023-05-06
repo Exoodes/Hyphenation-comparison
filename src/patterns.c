@@ -9,28 +9,28 @@
 #include <string.h>
 #include <sys/types.h>
 
-void patterns_print(Pattern_wrapper *patterns)
+void patterns_print(Pattern_wrapper *pattern_array)
 {
-    for (int i = 0; i < patterns->count; i++)
+    for (int i = 0; i < pattern_array->count; i++)
     {
-        patterns_show(patterns, i);
+        patterns_show(pattern_array, i);
     }
 }
 
-void patterns_show(Pattern_wrapper *patterns, int index)
+void patterns_show(Pattern_wrapper *pattern_array, int index)
 {
-    printf("%s - ", patterns->patterns[index].word);
+    printf("%s - ", pattern_array->patterns[index].word);
 
-    for (int i = 0; i <= strlen_utf8(patterns->patterns[index].word); i++)
-        printf("%i", patterns->patterns[index].code[i]);
+    for (int i = 0; i <= strlen_utf8(pattern_array->patterns[index].word); i++)
+        printf("%i", pattern_array->patterns[index].code[i]);
 
     printf("\n");
 }
 
-int patterns_load(Pattern_wrapper *patterns, const char *file_name)
+int patterns_load(Pattern_wrapper *pattern_array, const char *file_name)
 {
-    patterns->patterns = NULL;
-    patterns->count = 0;
+    pattern_array->patterns = NULL;
+    pattern_array->count = 0;
 
     FILE *fp;
     char *line = NULL;
@@ -46,30 +46,30 @@ int patterns_load(Pattern_wrapper *patterns, const char *file_name)
     }
 
     allocated_count = 1;
-    patterns->patterns = realloc(patterns->patterns, allocated_count * sizeof(Pattern));
-    if (patterns->patterns == NULL)
+    pattern_array->patterns = realloc(pattern_array->patterns, allocated_count * sizeof(Pattern));
+    if (pattern_array->patterns == NULL)
     {
-        printf("Allocation errro\n");
+        printf("Allocation error\n");
         return 1;
     }
 
     while ((read = getline(&line, &len, fp)) != -1)
     {
-        if (allocated_count == patterns->count)
+        if (allocated_count == pattern_array->count)
         {
             allocated_count *= 2;
-            patterns->patterns = realloc(patterns->patterns, allocated_count * sizeof(Pattern));
-            if (patterns->patterns == NULL)
+            pattern_array->patterns = realloc(pattern_array->patterns, allocated_count * sizeof(Pattern));
+            if (pattern_array->patterns == NULL)
             {
-                printf("Allocation errro\n");
+                printf("Allocation error\n");
                 return 1;
             }
         }
 
-        patterns->patterns[patterns->count].word = calloc(read, sizeof(char));
-        if (patterns->patterns[patterns->count].word == NULL)
+        pattern_array->patterns[pattern_array->count].word = calloc(read, sizeof(char));
+        if (pattern_array->patterns[pattern_array->count].word == NULL)
         {
-            printf("Allocation errro\n");
+            printf("Allocation error\n");
             return 1;
         }
 
@@ -78,16 +78,16 @@ int patterns_load(Pattern_wrapper *patterns, const char *file_name)
         {
             if (!isdigit(line[i]) && line[i] != '\n')
             {
-                patterns->patterns[patterns->count].word[index] = line[i];
+                pattern_array->patterns[pattern_array->count].word[index] = line[i];
                 index++;
             }
         }
 
-        patterns->patterns[patterns->count].code =
-            calloc(strlen_utf8(patterns->patterns[patterns->count].word) + 1, sizeof(char));
-        if (patterns->patterns[patterns->count].code == NULL)
+        pattern_array->patterns[pattern_array->count].code =
+            calloc(strlen_utf8(pattern_array->patterns[pattern_array->count].word) + 1, sizeof(char));
+        if (pattern_array->patterns[pattern_array->count].code == NULL)
         {
-            printf("Allocation errro\n");
+            printf("Allocation error\n");
             return 1;
         }
 
@@ -96,7 +96,7 @@ int patterns_load(Pattern_wrapper *patterns, const char *file_name)
         {
             if (isdigit(line[i]))
             {
-                patterns->patterns[patterns->count].code[index] = line[i] - '0';
+                pattern_array->patterns[pattern_array->count].code[index] = line[i] - '0';
             }
 
             else if ((line[i] & 0xF8) == 0xF0 || (line[i] & 0xF0) == 0xE0 ||
@@ -106,7 +106,7 @@ int patterns_load(Pattern_wrapper *patterns, const char *file_name)
             }
         }
 
-        patterns->count++;
+        pattern_array->count++;
     }
 
     fclose(fp);
@@ -117,13 +117,13 @@ int patterns_load(Pattern_wrapper *patterns, const char *file_name)
     return 0;
 }
 
-void patterns_free(Pattern_wrapper *patterns)
+void patterns_free(Pattern_wrapper *pattern_array)
 {
-    for (int i = 0; i < patterns->count; i++)
+    for (int i = 0; i < pattern_array->count; i++)
     {
-        free(patterns->patterns[i].word);
-        free(patterns->patterns[i].code);
+        free(pattern_array->patterns[i].word);
+        free(pattern_array->patterns[i].code);
     }
 
-    free(patterns->patterns);
+    free(pattern_array->patterns);
 }

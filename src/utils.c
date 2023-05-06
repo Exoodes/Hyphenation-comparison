@@ -9,6 +9,9 @@ extern int right_hyphen_min;
 extern bool verbose;
 extern char hyphenation_char;
 
+struct timeval TBeg;
+struct timeval TEnd;
+
 char *add_dots_to_word(int len, char *word)
 {
     char *result = calloc(len + 3, sizeof(char));
