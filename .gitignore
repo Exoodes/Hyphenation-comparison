@@ -6,6 +6,7 @@
 
 # Unignore .dic, .tex
 !*.dic
+!*.pat
 !*.tex
 
 # Unignore .txt, .c, .h

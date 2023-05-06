@@ -46,13 +46,13 @@ INPUT_COMBINED := combined
 # Change INPUT_LANGUAGE variable for any other language input from above, for 
 # example: INPUT_LANGUAGE := $(INPUT_UK) for ukrainian patterns and words
 INPUT_LANGUAGE := $(INPUT_TH)
-INPUT := assets/$(INPUT_LANGUAGE)_patterns.tex assets/$(INPUT_LANGUAGE)_words.dic
+INPUT := assets/$(INPUT_LANGUAGE)_patterns.pat assets/$(INPUT_LANGUAGE)_words.dic
 
 # Variables for hyphenator program
 EXE_HYPHENATOR := $(BIN_DIR)/hyphenator
 SRC_HYPHENATOR := $(SRC_DIR)/hyphenator.c $(SRC_DIR)/patterns.c $(SRC_DIR)/judy.c $(SRC_DIR)/utils.c 
 OBJ_HYPHENATOR := $(SRC_HYPHENATOR:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
-INPUT_HYPHENATOR := -l2 -r2 -f assets/$(INPUT_LANGUAGE)_words.dic assets/$(INPUT_LANGUAGE)_patterns.tex
+INPUT_HYPHENATOR := -l2 -r2 -f assets/$(INPUT_LANGUAGE)_words.dic assets/$(INPUT_LANGUAGE)_patterns.pat
 
 all: $(EXE_COMPARE) $(EXE_HYPHENATOR)
 
