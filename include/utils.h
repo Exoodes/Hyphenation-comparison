@@ -19,12 +19,15 @@ struct timeval TBeg, TEnd;
  */
 char *add_dots_to_word(int len, char *word);
 
-// Returns the number of utf8 characters in string
+/**
+ * Returns the number of utf8 characters in string
+ */
 int strlen_utf8(const char *str);
 
 /**
- * Create array which contains values of sum of byte length of characters.
- * abcábč returns [0, 1, 2, 3, 5, 6, 8]
+ * Create an array that contains the sum of the byte length of all characters
+ * before each position. For the string "abcábč" the resulting array look like
+ * this: [0, 1, 2, 3, 5, 6, 8].
  */
 char *create_utf_array(char *word);
 
