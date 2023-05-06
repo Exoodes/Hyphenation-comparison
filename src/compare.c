@@ -24,10 +24,10 @@ void print_results(double time_judy, double time_trie, int word_count)
 {
     printf("Hyphenation results\n");
     printf("Hyphenating %i words with patterns stored in Judy        took %8.0f"
-           " microseconds total, %4.3f microseconds per word\n",
+           " microseconds total, %4.3f miliseconds per word\n",
            word_count, time_judy, time_judy / word_count);
     printf("Hyphenating %i words with patterns stored in cprops Trie took %8.0f"
-           " microseconds total, %4.3f microseconds per word\n",
+           " microseconds total, %4.3f miliseconds per word\n",
            word_count, time_trie, time_trie / word_count);
 }
 
@@ -80,7 +80,7 @@ void compare(const char *file_name, Pvoid_t *pattern_judy, cp_trie *pattern_trie
             read--;
         }
 
-        // Skip if now word was loaded
+        // Skip if no word was loaded
         if (read == 0)
             continue;
 
@@ -159,7 +159,11 @@ int main(int argc, char **argv)
 
     // Load patterns
     Pattern_wrapper pattern_list;
-    patterns_load(&pattern_list, patterns_filepath);
+    if (patterns_load(&pattern_list, patterns_filepath))
+    {
+        patterns_free(&pattern_list);
+        return 1;
+    }
 
     // Memory testing
     if (memory_test_only_patterns_flag)
