@@ -24,15 +24,6 @@
 .vs/
 .vscode/
 
-# CMake
-CMakeCache.txt
-CMakeFiles/
-*-build/
-cmake-build-debug/
-build/
-_build/
-
-
 # Unignore .gitignore, .clang-format and .clang-tidy
 !.gitignore
 !.clang-format
