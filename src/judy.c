@@ -6,7 +6,7 @@
 
 // Necessary Judy settings
 #define JUDYERROR_SAMPLE 1 // use default Judy error handler
-#define MAXLINELEN 100     // define maximum string length
+#define MAXLINELEN 20      // define maximum pattern length
 
 extern bool verbose;
 
@@ -24,7 +24,7 @@ void judy_insert_patterns(Pattern_wrapper *patterns, Pvoid_t *judy_array)
 
     if (verbose)
         printf("Insertion in judy data structure   of %u patterns "
-               "took %8.f miliseconds (%.3f per pattern)\n",
+               "took %8.f microseconds (%.3f per pattern)\n",
                patterns->count, DeltaUSec, DeltaUSec / patterns->count);
 }
 
