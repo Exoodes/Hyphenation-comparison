@@ -19,7 +19,7 @@ Then run `make`
 - `make run-tests` to run all test
 - `make time-test` to run only time complexity testing
 - `make memory-test` to run only space complexity testing
-- `make hyphenator` crate hyphenator program
+- `make hyphenator` craate hyphenator program and run example
 
 ### Hyphenator usage
 - The first argument must be  options
